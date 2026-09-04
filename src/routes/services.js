@@ -100,6 +100,63 @@ router.post('/', async (req, res) => {
     }
 });
 
+router.put('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, url } = req.body;
+
+        if (!name || !name.trim()) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Name is required'
+            });
+        }
+
+        if (!url || !url.trim()) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'URL is required'
+            });
+        }
+
+        try {
+            new URL(url);
+        } catch {
+            return res.status(400).json({
+                status: 'error',
+                message: 'URL must be valid'
+            });
+        }
+
+        const [result] = await db.query(
+            `UPDATE services
+             SET name = ?, url = ?
+             WHERE id = ?`,
+            [name.trim(), url.trim(), id]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Service not found'
+            });
+        }
+
+        res.status(200).json({
+            id: Number(id),
+            name: name.trim(),
+            url: url.trim()
+        });
+    } catch (error) {
+        console.error('Failed to update service:', error.message);
+
+        res.status(500).json({
+            status: 'error',
+            message: 'Failed to update service'
+        });
+    }
+});
+
 router.delete('/:id', async (req, res) => {
     try {
         const { id } = req.params;
