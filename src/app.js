@@ -1,4 +1,5 @@
 const express = require('express');
+const db = require('./db');
 
 const app = express();
 
@@ -11,6 +12,25 @@ app.get('/health', (req, res) => {
         status: 'ok',
         service: 'ServiceDock API'
     });
+});
+
+app.get('/db-check', async (req, res) => {
+    try {
+        const [rows] = await db.query('SELECT 1 AS connected');
+
+        res.status(200).json({
+            status: 'ok',
+            database: 'connected',
+            result: rows[0]
+        });
+    } catch (error) {
+        console.error('Database connection failed:', error.message);
+
+        res.status(500).json({
+            status: 'error',
+            database: 'disconnected'
+        });
+    }
 });
 
 app.listen(PORT, () => {
