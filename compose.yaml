@@ -31,5 +31,9 @@ services:
       retries: 10
       start_period: 10s
 
+  demo-service:
+    image: nginx:alpine
+    container_name: servicedock-demo
+
 volumes:
   mysql-data:

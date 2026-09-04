@@ -157,6 +157,65 @@ router.put('/:id', async (req, res) => {
     }
 });
 
+router.post('/:id/check', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Find the service first
+        const [rows] = await db.query(
+            `SELECT id, name, url, status
+             FROM services
+             WHERE id = ?`,
+            [id]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Service not found'
+            });
+        }
+
+        const service = rows[0];
+
+        let newStatus;
+
+        try {
+            const response = await fetch(service.url);
+
+            if (response.ok) {
+                newStatus = 'healthy';
+            } else {
+                newStatus = 'unhealthy';
+            }
+        } catch (error) {
+            newStatus = 'unreachable';
+        }
+
+        // Save the new status
+        await db.query(
+            `UPDATE services
+             SET status = ?
+             WHERE id = ?`,
+            [newStatus, id]
+        );
+
+        res.status(200).json({
+            id: service.id,
+            name: service.name,
+            url: service.url,
+            status: newStatus
+        });
+    } catch (error) {
+        console.error('Failed to check service:', error.message);
+
+        res.status(500).json({
+            status: 'error',
+            message: 'Failed to check service'
+        });
+    }
+});
+
 router.delete('/:id', async (req, res) => {
     try {
         const { id } = req.params;
