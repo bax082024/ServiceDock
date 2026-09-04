@@ -22,6 +22,35 @@ router.get('/', async (req, res) => {
     }
 });
 
+router.get('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const [rows] = await db.query(
+            `SELECT id, name, url, status, created_at
+             FROM services
+             WHERE id = ?`,
+            [id]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Service not found'
+            });
+        }
+
+        res.status(200).json(rows[0]);
+    } catch (error) {
+        console.error('Failed to fetch service:', error.message);
+
+        res.status(500).json({
+            status: 'error',
+            message: 'Failed to fetch service'
+        });
+    }
+});
+
 router.post('/', async (req, res) => {
     try {
         const { name, url } = req.body;
