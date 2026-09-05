@@ -51,6 +51,52 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+router.get('/:id/checks', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const [services] = await db.query(
+            `SELECT id, name
+             FROM services
+             WHERE id = ?`,
+            [id]
+        );
+
+        if (services.length === 0) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Service not found'
+            });
+        }
+
+        const [checks] = await db.query(
+            `SELECT id, status, checked_at
+             FROM service_checks
+             WHERE service_id = ?
+             ORDER BY checked_at DESC`,
+            [id]
+        );
+
+        res.status(200).json({
+            service: {
+                id: services[0].id,
+                name: services[0].name
+            },
+            checks
+        });
+    } catch (error) {
+        console.error(
+            'Failed to fetch service checks:',
+            error.message
+        );
+
+        res.status(500).json({
+            status: 'error',
+            message: 'Failed to fetch service checks'
+        });
+    }
+});
+
 router.post('/', async (req, res) => {
     try {
         const { name, url } = req.body;
