@@ -5,7 +5,8 @@ import {
     getService,
     getServiceStats,
     getServiceChecks,
-    getServiceIncidents
+    getServiceIncidents,
+    checkService
 } from '../services/api';
 
 function ServiceDetailsPage() {
@@ -15,8 +16,41 @@ function ServiceDetailsPage() {
     const [stats, setStats] = useState(null);
     const [checks, setChecks] = useState([]);
     const [incidents, setIncidents] = useState([]);
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    const [checking, setChecking] = useState(false);
+    const [checkError, setCheckError] = useState(null);
+
+    async function loadServiceDetails() {
+        try {
+            const [
+                serviceData,
+                statsData,
+                checksData,
+                incidentsData
+            ] = await Promise.all([
+                getService(id),
+                getServiceStats(id),
+                getServiceChecks(id),
+                getServiceIncidents(id)
+            ]);
+
+            setService(serviceData);
+            setStats(statsData.stats);
+            setChecks(checksData.checks);
+            setIncidents(incidentsData.incidents);
+
+            setError(null);
+
+        } catch (error) {
+            setError(error.message);
+
+        } finally {
+            setLoading(false);
+        }
+    }
 
     useEffect(() => {
         loadServiceDetails();
@@ -29,34 +63,23 @@ function ServiceDetailsPage() {
             clearInterval(interval);
         };
     }, [id]);
-        async function loadServiceDetails() {
-            try {
-                const [
-                    serviceData,
-                    statsData,
-                    checksData,
-                    incidentsData
-                ] = await Promise.all([
-                    getService(id),
-                    getServiceStats(id),
-                    getServiceChecks(id),
-                    getServiceIncidents(id)
-                ]);
 
-                setService(serviceData);
-                setStats(statsData.stats);
-                setChecks(checksData.checks);
-                setIncidents(incidentsData.incidents);
-                setError(null);
+    async function handleCheckNow() {
+        try {
+            setChecking(true);
+            setCheckError(null);
 
-            } catch (error) {
-                setError(error.message);
-            } finally {
-                setLoading(false);
-            }
+            await checkService(id);
+
+            await loadServiceDetails();
+
+        } catch (error) {
+            setCheckError(error.message);
+
+        } finally {
+            setChecking(false);
         }
-
-
+    }
 
     if (loading) {
         return (
@@ -105,16 +128,36 @@ function ServiceDetailsPage() {
                     </p>
                 </div>
 
-                <span
-                    className={`status-badge ${service.status}`}
-                >
-                    {service.status}
-                </span>
+                <div className="service-detail-actions">
+                    <span
+                        className={`status-badge ${service.status}`}
+                    >
+                        {service.status}
+                    </span>
+
+                    <button
+                        className="secondary-button"
+                        type="button"
+                        onClick={handleCheckNow}
+                        disabled={checking}
+                    >
+                        {checking
+                            ? 'Checking...'
+                            : 'Check Now'}
+                    </button>
+                </div>
             </header>
+
+            {checkError && (
+                <p className="form-error">
+                    {checkError}
+                </p>
+            )}
 
             <section className="details-overview">
                 <div className="overview-card">
                     <span>All-time uptime</span>
+
                     <strong>
                         {allTime?.uptimePercentage ?? 0}%
                     </strong>
@@ -122,8 +165,10 @@ function ServiceDetailsPage() {
 
                 <div className="overview-card">
                     <span>Average response</span>
+
                     <strong>
                         {allTime?.responseTime?.averageMs ?? 'N/A'}
+
                         {allTime?.responseTime?.averageMs != null
                             ? ' ms'
                             : ''}
@@ -132,6 +177,7 @@ function ServiceDetailsPage() {
 
                 <div className="overview-card">
                     <span>Total incidents</span>
+
                     <strong>
                         {incidentStats?.totalIncidents ?? 0}
                     </strong>
@@ -139,6 +185,7 @@ function ServiceDetailsPage() {
 
                 <div className="overview-card">
                     <span>Active incidents</span>
+
                     <strong>
                         {incidentStats?.activeIncidents ?? 0}
                     </strong>
@@ -148,6 +195,7 @@ function ServiceDetailsPage() {
             <section className="details-section">
                 <div className="section-heading">
                     <h3>Uptime</h3>
+
                     <p>
                         Availability across different monitoring periods.
                     </p>
@@ -156,6 +204,7 @@ function ServiceDetailsPage() {
                 <div className="uptime-grid">
                     <div>
                         <span>Last 24 hours</span>
+
                         <strong>
                             {stats?.last24Hours?.uptimePercentage ?? 0}%
                         </strong>
@@ -163,6 +212,7 @@ function ServiceDetailsPage() {
 
                     <div>
                         <span>Last 7 days</span>
+
                         <strong>
                             {stats?.last7Days?.uptimePercentage ?? 0}%
                         </strong>
@@ -170,6 +220,7 @@ function ServiceDetailsPage() {
 
                     <div>
                         <span>Last 30 days</span>
+
                         <strong>
                             {stats?.last30Days?.uptimePercentage ?? 0}%
                         </strong>
@@ -177,6 +228,7 @@ function ServiceDetailsPage() {
 
                     <div>
                         <span>All time</span>
+
                         <strong>
                             {allTime?.uptimePercentage ?? 0}%
                         </strong>
@@ -187,6 +239,7 @@ function ServiceDetailsPage() {
             <section className="details-section">
                 <div className="section-heading">
                     <h3>Recent Checks</h3>
+
                     <p>
                         Latest monitoring results for this service.
                     </p>
@@ -202,7 +255,9 @@ function ServiceDetailsPage() {
                                 className={`status-dot ${check.status}`}
                             ></span>
 
-                            <strong>{check.status}</strong>
+                            <strong>
+                                {check.status}
+                            </strong>
 
                             <span>
                                 {check.response_time_ms != null
@@ -223,6 +278,7 @@ function ServiceDetailsPage() {
             <section className="details-section">
                 <div className="section-heading">
                     <h3>Incident History</h3>
+
                     <p>
                         Recorded outages and recoveries.
                     </p>
@@ -241,7 +297,9 @@ function ServiceDetailsPage() {
                             key={incident.id}
                         >
                             <span
-                                className={`incident-status ${incident.status}`}
+                                className={
+                                    `incident-status ${incident.status}`
+                                }
                             >
                                 {incident.status}
                             </span>

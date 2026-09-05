@@ -134,3 +134,22 @@ export async function deleteService(id) {
 
     return response.json();
 }
+
+export async function checkService(id) {
+    const response = await fetch(
+        `http://localhost:3000/services/${id}/check`,
+        {
+            method: 'POST'
+        }
+    );
+
+    if (!response.ok) {
+        const error = await response.json();
+
+        throw new Error(
+            error.message || 'Failed to check service'
+        );
+    }
+
+    return response.json();
+}

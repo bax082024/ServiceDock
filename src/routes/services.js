@@ -1,5 +1,6 @@
 const express = require('express');
 const db = require('../db');
+const checkService = require('../checkService');
 
 const router = express.Router();
 
@@ -542,7 +543,6 @@ router.post('/:id/check', async (req, res) => {
     try {
         const { id } = req.params;
 
-        // Find the service first
         const [rows] = await db.query(
             `SELECT id, name, url, status
              FROM services
@@ -557,46 +557,15 @@ router.post('/:id/check', async (req, res) => {
             });
         }
 
-        const service = rows[0];
+        const result = await checkService(rows[0]);
 
-        let newStatus;
+        res.status(200).json(result);
 
-        try {
-            const response = await fetch(service.url, {
-                signal: AbortSignal.timeout(5000)
-            });
-
-            if (response.ok) {
-                newStatus = 'healthy';
-            } else {
-                newStatus = 'unhealthy';
-            }
-        } catch (error) {
-            newStatus = 'unreachable';
-        }
-
-        // Save the new status
-        await db.query(
-            `UPDATE services
-             SET status = ?
-             WHERE id = ?`,
-            [newStatus, id]
-        );
-
-        await db.query(
-            `INSERT INTO service_checks (service_id, status)
-            VALUES (?, ?)`,
-            [id, newStatus]
-        );
-
-        res.status(200).json({
-            id: service.id,
-            name: service.name,
-            url: service.url,
-            status: newStatus
-        });
     } catch (error) {
-        console.error('Failed to check service:', error.message);
+        console.error(
+            'Failed to check service:',
+            error.message
+        );
 
         res.status(500).json({
             status: 'error',

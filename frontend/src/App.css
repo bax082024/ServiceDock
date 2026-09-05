@@ -856,6 +856,21 @@ button {
     font-size: 0.9rem;
 }
 
+.service-detail-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.service-detail-actions .secondary-button {
+    cursor: pointer;
+}
+
+.service-detail-actions .secondary-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 @media (max-width: 900px) {
     .global-incident-row {
         grid-template-columns: 1fr;
