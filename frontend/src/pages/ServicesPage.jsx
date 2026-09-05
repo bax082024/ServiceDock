@@ -1,28 +1,64 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { getServices } from '../services/api';
+import {
+    createService,
+    getServices
+} from '../services/api';
 
 function ServicesPage() {
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        async function loadServices() {
-            try {
-                const data = await getServices();
+    const [showAddForm, setShowAddForm] = useState(false);
 
-                setServices(data);
-            } catch (error) {
-                setError(error.message);
-            } finally {
-                setLoading(false);
-            }
+    const [name, setName] = useState('');
+    const [url, setUrl] = useState('');
+
+    const [saving, setSaving] = useState(false);
+    const [formError, setFormError] = useState(null);
+
+    async function loadServices() {
+        try {
+            const data = await getServices();
+
+            setServices(data);
+        } catch (error) {
+            setError(error.message);
+        } finally {
+            setLoading(false);
         }
+    }
 
+    useEffect(() => {
         loadServices();
     }, []);
+
+    async function handleAddService(event) {
+        event.preventDefault();
+
+        setSaving(true);
+        setFormError(null);
+
+        try {
+            await createService({
+                name,
+                url
+            });
+
+            setName('');
+            setUrl('');
+            setShowAddForm(false);
+
+            await loadServices();
+
+        } catch (error) {
+            setFormError(error.message);
+        } finally {
+            setSaving(false);
+        }
+    }
 
     return (
         <>
@@ -42,10 +78,82 @@ function ServicesPage() {
                 <button
                     className="primary-button"
                     type="button"
+                    onClick={() =>
+                        setShowAddForm(!showAddForm)
+                    }
                 >
-                    + Add Service
+                    {showAddForm
+                        ? 'Cancel'
+                        : '+ Add Service'}
                 </button>
             </header>
+
+            {showAddForm && (
+                <section className="add-service-panel">
+                    <div className="section-heading">
+                        <h3>Add Service</h3>
+
+                        <p>
+                            Register a new service for monitoring.
+                        </p>
+                    </div>
+
+                    <form
+                        className="service-form"
+                        onSubmit={handleAddService}
+                    >
+                        <div className="form-field">
+                            <label htmlFor="service-name">
+                                Name
+                            </label>
+
+                            <input
+                                id="service-name"
+                                type="text"
+                                value={name}
+                                onChange={event =>
+                                    setName(event.target.value)
+                                }
+                                placeholder="Example API"
+                            />
+                        </div>
+
+                        <div className="form-field">
+                            <label htmlFor="service-url">
+                                URL
+                            </label>
+
+                            <input
+                                id="service-url"
+                                type="text"
+                                value={url}
+                                onChange={event =>
+                                    setUrl(event.target.value)
+                                }
+                                placeholder="http://example-service"
+                            />
+                        </div>
+
+                        {formError && (
+                            <p className="form-error">
+                                {formError}
+                            </p>
+                        )}
+
+                        <div className="form-actions">
+                            <button
+                                className="primary-button"
+                                type="submit"
+                                disabled={saving}
+                            >
+                                {saving
+                                    ? 'Adding...'
+                                    : 'Add Service'}
+                            </button>
+                        </div>
+                    </form>
+                </section>
+            )}
 
             {loading && (
                 <p className="message">

@@ -35,5 +35,9 @@ services:
     image: nginx:alpine
     container_name: servicedock-demo
 
+  demo-service-2:
+    image: nginx:alpine
+    container_name: servicedock-demo-2
+
 volumes:
   mysql-data:

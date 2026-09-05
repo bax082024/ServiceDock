@@ -57,3 +57,26 @@ export async function getServiceChecks(id) {
 
     return response.json();
 }
+
+export async function createService(service) {
+    const response = await fetch(
+        `${API_URL}/services`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(service)
+        }
+    );
+
+    if (!response.ok) {
+        const error = await response.json();
+
+        throw new Error(
+            error.message || 'Failed to create service'
+        );
+    }
+
+    return response.json();
+}
