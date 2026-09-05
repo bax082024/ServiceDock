@@ -38,9 +38,9 @@ async function checkAllServices() {
              FROM services`
         );
 
-        for (const service of services) {
-            await checkService(service);
-        }
+        await Promise.all(
+            services.map(service => checkService(service))
+        );
     } catch (error) {
         console.error(
             '[Monitor] Failed to check services:',
