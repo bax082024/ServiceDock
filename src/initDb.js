@@ -21,6 +21,17 @@ async function initDb() {
         )
     `);
 
+    await db.query(`
+        CREATE TABLE IF NOT EXISTS incidents (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            service_id INT NOT NULL,
+            started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            resolved_at TIMESTAMP NULL,
+            FOREIGN KEY (service_id) REFERENCES services(id)
+                ON DELETE CASCADE
+        )
+    `);
+
     const [columns] = await db.query(`
         SHOW COLUMNS FROM service_checks LIKE 'response_time_ms'
     `);
