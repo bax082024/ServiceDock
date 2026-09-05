@@ -202,6 +202,12 @@ router.post('/:id/check', async (req, res) => {
             [newStatus, id]
         );
 
+        await db.query(
+            `INSERT INTO service_checks (service_id, status)
+            VALUES (?, ?)`,
+            [id, newStatus]
+        );
+
         res.status(200).json({
             id: service.id,
             name: service.name,
