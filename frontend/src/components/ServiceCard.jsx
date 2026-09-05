@@ -1,4 +1,7 @@
+import { useNavigate } from 'react-router-dom';
+
 function ServiceCard({ service }) {
+    const navigate = useNavigate();
     const stats = service.stats?.allTime;
     const incidentStats = service.stats?.incidents;
 
@@ -6,7 +9,10 @@ function ServiceCard({ service }) {
         stats?.responseTime?.averageMs;
 
     return (
-        <article className="service-card">
+        <article
+            className="service-card clickable"
+            onClick={() => navigate(`/services/${service.id}`)}
+        >
             <div className="service-card-header">
                 <div>
                     <div className="service-title">

@@ -33,3 +33,27 @@ export async function getServiceIncidents(id) {
 
     return response.json();
 }
+
+export async function getService(id) {
+    const response = await fetch(
+        `${API_URL}/services/${id}`
+    );
+
+    if (!response.ok) {
+        throw new Error('Failed to load service');
+    }
+
+    return response.json();
+}
+
+export async function getServiceChecks(id) {
+    const response = await fetch(
+        `${API_URL}/services/${id}/checks`
+    );
+
+    if (!response.ok) {
+        throw new Error('Failed to load service checks');
+    }
+
+    return response.json();
+}
