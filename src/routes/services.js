@@ -19,7 +19,24 @@ function formatStats(row) {
         totalChecks,
         healthyChecks,
         failedChecks,
-        uptimePercentage
+        uptimePercentage,
+
+        responseTime: {
+            averageMs:
+                row.averageResponseTimeMs === null
+                    ? null
+                    : Number(Number(row.averageResponseTimeMs).toFixed(2)),
+
+            fastestMs:
+                row.fastestResponseTimeMs === null
+                    ? null
+                    : Number(row.fastestResponseTimeMs),
+
+            slowestMs:
+                row.slowestResponseTimeMs === null
+                    ? null
+                    : Number(row.slowestResponseTimeMs)
+        }
     };
 }
 
@@ -139,7 +156,28 @@ router.get('/:id/stats', async (req, res) => {
             `SELECT
                 COUNT(*) AS totalChecks,
                 SUM(status = 'healthy') AS healthyChecks,
-                SUM(status != 'healthy') AS failedChecks
+                SUM(status != 'healthy') AS failedChecks,
+
+                AVG(
+                    CASE
+                        WHEN status = 'healthy'
+                        THEN response_time_ms
+                    END
+                ) AS averageResponseTimeMs,
+
+                MIN(
+                    CASE
+                        WHEN status = 'healthy'
+                        THEN response_time_ms
+                    END
+                ) AS fastestResponseTimeMs,
+
+                MAX(
+                    CASE
+                        WHEN status = 'healthy'
+                        THEN response_time_ms
+                    END
+                ) AS slowestResponseTimeMs
              FROM service_checks
              WHERE service_id = ?`,
             [id]
@@ -149,7 +187,28 @@ router.get('/:id/stats', async (req, res) => {
             `SELECT
                 COUNT(*) AS totalChecks,
                 SUM(status = 'healthy') AS healthyChecks,
-                SUM(status != 'healthy') AS failedChecks
+                SUM(status != 'healthy') AS failedChecks,
+
+                AVG(
+                    CASE
+                        WHEN status = 'healthy'
+                        THEN response_time_ms
+                    END
+                ) AS averageResponseTimeMs,
+
+                MIN(
+                    CASE
+                        WHEN status = 'healthy'
+                        THEN response_time_ms
+                    END
+                ) AS fastestResponseTimeMs,
+
+                MAX(
+                    CASE
+                        WHEN status = 'healthy'
+                        THEN response_time_ms
+                    END
+                ) AS slowestResponseTimeMs
              FROM service_checks
              WHERE service_id = ?
                AND checked_at >= NOW() - INTERVAL 24 HOUR`,
@@ -160,7 +219,28 @@ router.get('/:id/stats', async (req, res) => {
             `SELECT
                 COUNT(*) AS totalChecks,
                 SUM(status = 'healthy') AS healthyChecks,
-                SUM(status != 'healthy') AS failedChecks
+                SUM(status != 'healthy') AS failedChecks,
+
+                AVG(
+                    CASE
+                        WHEN status = 'healthy'
+                        THEN response_time_ms
+                    END
+                ) AS averageResponseTimeMs,
+
+                MIN(
+                    CASE
+                        WHEN status = 'healthy'
+                        THEN response_time_ms
+                    END
+                ) AS fastestResponseTimeMs,
+
+                MAX(
+                    CASE
+                        WHEN status = 'healthy'
+                        THEN response_time_ms
+                    END
+                ) AS slowestResponseTimeMs
              FROM service_checks
              WHERE service_id = ?
                AND checked_at >= NOW() - INTERVAL 7 DAY`,
@@ -171,7 +251,28 @@ router.get('/:id/stats', async (req, res) => {
             `SELECT
                 COUNT(*) AS totalChecks,
                 SUM(status = 'healthy') AS healthyChecks,
-                SUM(status != 'healthy') AS failedChecks
+                SUM(status != 'healthy') AS failedChecks,
+
+                AVG(
+                    CASE
+                        WHEN status = 'healthy'
+                        THEN response_time_ms
+                    END
+                ) AS averageResponseTimeMs,
+
+                MIN(
+                    CASE
+                        WHEN status = 'healthy'
+                        THEN response_time_ms
+                    END
+                ) AS fastestResponseTimeMs,
+
+                MAX(
+                    CASE
+                        WHEN status = 'healthy'
+                        THEN response_time_ms
+                    END
+                ) AS slowestResponseTimeMs
              FROM service_checks
              WHERE service_id = ?
                AND checked_at >= NOW() - INTERVAL 30 DAY`,
