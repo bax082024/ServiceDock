@@ -181,7 +181,9 @@ router.post('/:id/check', async (req, res) => {
         let newStatus;
 
         try {
-            const response = await fetch(service.url);
+            const response = await fetch(service.url, {
+                signal: AbortSignal.timeout(5000)
+            });
 
             if (response.ok) {
                 newStatus = 'healthy';
