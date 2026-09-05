@@ -92,3 +92,26 @@ export async function getIncidents() {
 
     return response.json();
 }
+
+export async function updateService(id, service) {
+    const response = await fetch(
+        `${API_URL}/services/${id}`,
+        {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(service)
+        }
+    );
+
+    if (!response.ok) {
+        const error = await response.json();
+
+        throw new Error(
+            error.message || 'Failed to update service'
+        );
+    }
+
+    return response.json();
+}
