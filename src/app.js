@@ -4,6 +4,7 @@ const initDb = require('./initDb');
 const servicesRouter = require('./routes/services');
 const startMonitor = require('./monitor');
 const cors = require('cors');
+const incidentsRouter = require('./routes/incidents');
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.use(express.json());
 
 
 app.use('/services', servicesRouter);
+app.use('/incidents', incidentsRouter);
 
 app.get('/health', (req, res) => {
     res.status(200).json({

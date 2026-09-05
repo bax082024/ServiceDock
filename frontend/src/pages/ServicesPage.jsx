@@ -29,10 +29,19 @@ function ServicesPage() {
         } finally {
             setLoading(false);
         }
+        setError(null);
     }
 
     useEffect(() => {
         loadServices();
+
+        const interval = setInterval(() => {
+            loadServices();
+        }, 5000);
+
+        return () => {
+            clearInterval(interval);
+        };
     }, []);
 
     async function handleAddService(event) {

@@ -12,35 +12,43 @@ function DashboardPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        async function loadServices() {
-            try {
-                const data = await getServices();
+    async function loadServices() {
+        try {
+            const data = await getServices();
 
-                const servicesWithStats = await Promise.all(
-                    data.map(async service => {
-                        const stats = await getServiceStats(
-                            service.id
-                        );
+            const servicesWithStats = await Promise.all(
+                data.map(async service => {
+                    const stats = await getServiceStats(service.id);
 
-                        return {
-                            ...service,
-                            stats: stats.stats
-                        };
-                    })
-                );
+                    return {
+                        ...service,
+                        stats: stats.stats
+                    };
+                })
+            );
 
-                setServices(servicesWithStats);
+            setServices(servicesWithStats);
+            setError(null);
 
-            } catch (error) {
-                setError(error.message);
-            } finally {
-                setLoading(false);
-            }
+        } catch (error) {
+            setError(error.message);
+        } finally {
+            setLoading(false);
         }
+    }
 
+    useEffect(() => {
         loadServices();
+
+        const interval = setInterval(() => {
+            loadServices();
+        }, 5000);
+
+        return () => {
+            clearInterval(interval);
+        };
     }, []);
+
 
     const healthyServices = services.filter(
         service => service.status === 'healthy'

@@ -626,6 +626,71 @@ button {
     opacity: 0.6;
 }
 
+.global-incidents-list {
+    overflow: hidden;
+    border: 1px solid #202a3a;
+    border-radius: 12px;
+    background: #111823;
+}
+
+.global-incident-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px 120px;
+    align-items: center;
+    gap: 24px;
+    padding: 18px 20px;
+    border-bottom: 1px solid #202938;
+}
+
+.global-incident-row:last-child {
+    border-bottom: 0;
+}
+
+.incident-service {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.incident-service-link {
+    color: #f4f7fb;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.incident-service-link:hover {
+    color: #7da7ff;
+}
+
+.incident-service p {
+    margin: 5px 0 0;
+    color: #758198;
+    font-size: 12px;
+}
+
+.incident-time,
+.incident-duration {
+    display: grid;
+    gap: 5px;
+}
+
+.incident-time span,
+.incident-duration span {
+    color: #758198;
+    font-size: 11px;
+}
+
+.incident-time strong,
+.incident-duration strong {
+    font-size: 13px;
+}
+
+@media (max-width: 900px) {
+    .global-incident-row {
+        grid-template-columns: 1fr;
+    }
+}
+
 @media (max-width: 900px) {
     .service-form {
         grid-template-columns: 1fr;

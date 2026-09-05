@@ -80,3 +80,15 @@ export async function createService(service) {
 
     return response.json();
 }
+
+export async function getIncidents() {
+    const response = await fetch(
+        `${API_URL}/incidents`
+    );
+
+    if (!response.ok) {
+        throw new Error('Failed to load incidents');
+    }
+
+    return response.json();
+}

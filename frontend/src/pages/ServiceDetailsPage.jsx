@@ -19,6 +19,16 @@ function ServiceDetailsPage() {
     const [error, setError] = useState(null);
 
     useEffect(() => {
+        loadServiceDetails();
+
+        const interval = setInterval(() => {
+            loadServiceDetails();
+        }, 5000);
+
+        return () => {
+            clearInterval(interval);
+        };
+    }, [id]);
         async function loadServiceDetails() {
             try {
                 const [
@@ -37,6 +47,7 @@ function ServiceDetailsPage() {
                 setStats(statsData.stats);
                 setChecks(checksData.checks);
                 setIncidents(incidentsData.incidents);
+                setError(null);
 
             } catch (error) {
                 setError(error.message);
@@ -45,8 +56,7 @@ function ServiceDetailsPage() {
             }
         }
 
-        loadServiceDetails();
-    }, [id]);
+
 
     if (loading) {
         return (
