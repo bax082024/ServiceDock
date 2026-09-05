@@ -305,6 +305,74 @@ router.get('/:id/stats', async (req, res) => {
     }
 });
 
+router.get('/:id/incidents', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Make sure the service exists
+        const [services] = await db.query(
+            `SELECT id, name
+             FROM services
+             WHERE id = ?`,
+            [id]
+        );
+
+        if (services.length === 0) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Service not found'
+            });
+        }
+
+        // Get all incidents for this service
+        const [incidents] = await db.query(
+            `SELECT
+                id,
+                started_at,
+                resolved_at,
+                TIMESTAMPDIFF(
+                    SECOND,
+                    started_at,
+                    COALESCE(resolved_at, CURRENT_TIMESTAMP)
+                ) AS duration_seconds
+             FROM incidents
+             WHERE service_id = ?
+             ORDER BY started_at DESC`,
+            [id]
+        );
+
+        const formattedIncidents = incidents.map(incident => ({
+            id: incident.id,
+            startedAt: incident.started_at,
+            resolvedAt: incident.resolved_at,
+            durationSeconds: Number(incident.duration_seconds),
+            status:
+                incident.resolved_at === null
+                    ? 'active'
+                    : 'resolved'
+        }));
+
+        res.status(200).json({
+            service: {
+                id: services[0].id,
+                name: services[0].name
+            },
+            incidents: formattedIncidents
+        });
+
+    } catch (error) {
+        console.error(
+            'Failed to fetch incidents:',
+            error.message
+        );
+
+        res.status(500).json({
+            status: 'error',
+            message: 'Failed to fetch incidents'
+        });
+    }
+});
+
 router.post('/', async (req, res) => {
     try {
         const { name, url } = req.body;
