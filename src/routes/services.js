@@ -3,6 +3,26 @@ const db = require('../db');
 
 const router = express.Router();
 
+function formatStats(row) {
+    const totalChecks = Number(row.totalChecks);
+    const healthyChecks = Number(row.healthyChecks || 0);
+    const failedChecks = Number(row.failedChecks || 0);
+
+    const uptimePercentage =
+        totalChecks === 0
+            ? 0
+            : Number(
+                ((healthyChecks / totalChecks) * 100).toFixed(2)
+            );
+
+    return {
+        totalChecks,
+        healthyChecks,
+        failedChecks,
+        uptimePercentage
+    };
+}
+
 router.get('/', async (req, res) => {
     try {
         const [rows] = await db.query(
@@ -70,7 +90,7 @@ router.get('/:id/checks', async (req, res) => {
         }
 
         const [checks] = await db.query(
-            `SELECT id, status, checked_at
+            `SELECT id, status, response_time_ms, checked_at
              FROM service_checks
              WHERE service_id = ?
              ORDER BY checked_at DESC`,
@@ -115,7 +135,7 @@ router.get('/:id/stats', async (req, res) => {
             });
         }
 
-        const [stats] = await db.query(
+        const [allTimeRows] = await db.query(
             `SELECT
                 COUNT(*) AS totalChecks,
                 SUM(status = 'healthy') AS healthyChecks,
@@ -125,16 +145,38 @@ router.get('/:id/stats', async (req, res) => {
             [id]
         );
 
-        const totalChecks = Number(stats[0].totalChecks);
-        const healthyChecks = Number(stats[0].healthyChecks || 0);
-        const failedChecks = Number(stats[0].failedChecks || 0);
+        const [last24HoursRows] = await db.query(
+            `SELECT
+                COUNT(*) AS totalChecks,
+                SUM(status = 'healthy') AS healthyChecks,
+                SUM(status != 'healthy') AS failedChecks
+             FROM service_checks
+             WHERE service_id = ?
+               AND checked_at >= NOW() - INTERVAL 24 HOUR`,
+            [id]
+        );
 
-        const uptimePercentage =
-            totalChecks === 0
-                ? 0
-                : Number(
-                    ((healthyChecks / totalChecks) * 100).toFixed(2)
-                );
+        const [last7DaysRows] = await db.query(
+            `SELECT
+                COUNT(*) AS totalChecks,
+                SUM(status = 'healthy') AS healthyChecks,
+                SUM(status != 'healthy') AS failedChecks
+             FROM service_checks
+             WHERE service_id = ?
+               AND checked_at >= NOW() - INTERVAL 7 DAY`,
+            [id]
+        );
+
+        const [last30DaysRows] = await db.query(
+            `SELECT
+                COUNT(*) AS totalChecks,
+                SUM(status = 'healthy') AS healthyChecks,
+                SUM(status != 'healthy') AS failedChecks
+             FROM service_checks
+             WHERE service_id = ?
+               AND checked_at >= NOW() - INTERVAL 30 DAY`,
+            [id]
+        );
 
         res.status(200).json({
             service: {
@@ -143,10 +185,10 @@ router.get('/:id/stats', async (req, res) => {
                 status: services[0].status
             },
             stats: {
-                totalChecks,
-                healthyChecks,
-                failedChecks,
-                uptimePercentage
+                allTime: formatStats(allTimeRows[0]),
+                last24Hours: formatStats(last24HoursRows[0]),
+                last7Days: formatStats(last7DaysRows[0]),
+                last30Days: formatStats(last30DaysRows[0])
             }
         });
     } catch (error) {

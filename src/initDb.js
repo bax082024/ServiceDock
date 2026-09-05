@@ -21,6 +21,20 @@ async function initDb() {
         )
     `);
 
+    const [columns] = await db.query(`
+        SHOW COLUMNS FROM service_checks LIKE 'response_time_ms'
+    `);
+
+    if (columns.length === 0) {
+        await db.query(`
+            ALTER TABLE service_checks
+            ADD COLUMN response_time_ms INT NULL
+            AFTER status
+        `);
+
+        console.log('Added response_time_ms column');
+    }
+
     console.log('Database initialized');
 }
 

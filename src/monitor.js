@@ -2,14 +2,22 @@ const db = require('./db');
 
 async function checkService(service) {
     let newStatus;
+    let responseTimeMs = null;
+
+    const startTime = Date.now();
 
     try {
         const response = await fetch(service.url, {
             signal: AbortSignal.timeout(5000)
         });
 
-        newStatus = response.ok ? 'healthy' : 'unhealthy';
+        responseTimeMs = Date.now() - startTime;
+
+        newStatus = response.ok
+            ? 'healthy'
+            : 'unhealthy';
     } catch (error) {
+        responseTimeMs = Date.now() - startTime;
         newStatus = 'unreachable';
     }
 
@@ -21,13 +29,14 @@ async function checkService(service) {
     );
 
     await db.query(
-        `INSERT INTO service_checks (service_id, status)
-         VALUES (?, ?)`,
-        [service.id, newStatus]
+        `INSERT INTO service_checks
+            (service_id, status, response_time_ms)
+        VALUES (?, ?, ?)`,
+        [service.id, newStatus, responseTimeMs]
     );
 
     console.log(
-        `[Monitor] ${service.name}: ${newStatus}`
+        `[Monitor] ${service.name}: ${newStatus} (${responseTimeMs} ms)`
     );
 }
 
