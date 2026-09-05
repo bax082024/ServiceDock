@@ -818,6 +818,44 @@ button {
     cursor: not-allowed;
 }
 
+.delete-action-button,
+.danger-button {
+    border: 1px solid rgba(255, 92, 112, 0.35);
+    background: rgba(255, 92, 112, 0.08);
+    color: #ff6577;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.delete-action-button {
+    padding: 10px 14px;
+}
+
+.danger-button {
+    padding: 11px 16px;
+}
+
+.delete-action-button:hover,
+.danger-button:hover {
+    background: rgba(255, 92, 112, 0.16);
+}
+
+.delete-action-button:disabled,
+.danger-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.delete-service-content {
+    margin-top: 20px;
+}
+
+.delete-warning {
+    margin-top: 10px;
+    color: #ff8b98;
+    font-size: 0.9rem;
+}
+
 @media (max-width: 900px) {
     .global-incident-row {
         grid-template-columns: 1fr;

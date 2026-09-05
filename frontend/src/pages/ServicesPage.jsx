@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import EditServiceModal from '../components/EditServiceModal';
+import DeleteServiceModal from '../components/DeleteServiceModal';
 
 import {
     createService,
@@ -14,6 +15,7 @@ function ServicesPage() {
     const [error, setError] = useState(null);
 
     const [editingService, setEditingService] = useState(null);
+    const [deletingService, setDeletingService] = useState(null);
 
     const [showAddForm, setShowAddForm] = useState(false);
 
@@ -241,6 +243,16 @@ function ServicesPage() {
                                     >
                                         Edit
                                     </button>
+
+                                    <button
+                                        className="delete-action-button"
+                                        type="button"
+                                        onClick={() =>
+                                            setDeletingService(service)
+                                        }
+                                    >
+                                        Delete
+                                    </button>
                                 </div>
                             </div>
                         ))}
@@ -261,6 +273,13 @@ function ServicesPage() {
                         setEditingService(null)
                     }
                     onServiceUpdated={loadServices}
+                />
+            )}
+            {deletingService && (
+                <DeleteServiceModal
+                    service={deletingService}
+                    onClose={() => setDeletingService(null)}
+                    onServiceDeleted={loadServices}
                 />
             )}
         </>

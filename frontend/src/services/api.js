@@ -115,3 +115,22 @@ export async function updateService(id, service) {
 
     return response.json();
 }
+
+export async function deleteService(id) {
+    const response = await fetch(
+        `http://localhost:3000/services/${id}`,
+        {
+            method: 'DELETE'
+        }
+    );
+
+    if (!response.ok) {
+        const error = await response.json();
+
+        throw new Error(
+            error.message || 'Failed to delete service'
+        );
+    }
+
+    return response.json();
+}
