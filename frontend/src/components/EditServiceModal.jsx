@@ -9,6 +9,19 @@ function EditServiceModal({
 }) {
     const [name, setName] = useState(service.name);
     const [url, setUrl] = useState(service.url);
+
+    const [monitoringEnabled, setMonitoringEnabled] =
+        useState(Boolean(service.monitoring_enabled));
+
+    const [checkIntervalSeconds, setCheckIntervalSeconds] =
+        useState(service.check_interval_seconds ?? 30);
+
+    const [timeoutMs, setTimeoutMs] =
+        useState(service.timeout_ms ?? 5000);
+
+    const [slowThresholdMs, setSlowThresholdMs] =
+        useState(service.slow_threshold_ms ?? 500);
+
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState(null);
 
@@ -23,7 +36,14 @@ function EditServiceModal({
                 service.id,
                 {
                     name,
-                    url
+                    url,
+                    monitoring_enabled: monitoringEnabled,
+                    check_interval_seconds:
+                        Number(checkIntervalSeconds),
+                    timeout_ms:
+                        Number(timeoutMs),
+                    slow_threshold_ms:
+                        Number(slowThresholdMs)
                 }
             );
 
@@ -60,6 +80,7 @@ function EditServiceModal({
                         className="modal-close"
                         onClick={onClose}
                         type="button"
+                        disabled={saving}
                     >
                         ×
                     </button>
@@ -94,6 +115,99 @@ function EditServiceModal({
                             disabled={saving}
                         />
                     </label>
+
+                    <div className="monitoring-settings">
+                        <div className="monitoring-setting-row">
+                            <div>
+                                <strong>
+                                    Automatic monitoring
+                                </strong>
+
+                                <p>
+                                    Enable scheduled health checks
+                                    for this service.
+                                </p>
+                            </div>
+
+                            <label className="toggle-switch">
+                                <input
+                                    type="checkbox"
+                                    checked={monitoringEnabled}
+                                    onChange={event =>
+                                        setMonitoringEnabled(
+                                            event.target.checked
+                                        )
+                                    }
+                                    disabled={saving}
+                                />
+
+                                <span className="toggle-slider"></span>
+                            </label>
+                        </div>
+
+                        <label>
+                            Check interval
+
+                            <div className="input-with-unit">
+                                <input
+                                    type="number"
+                                    min="1"
+                                    step="1"
+                                    value={checkIntervalSeconds}
+                                    onChange={event =>
+                                        setCheckIntervalSeconds(
+                                            event.target.value
+                                        )
+                                    }
+                                    disabled={saving}
+                                />
+
+                                <span>seconds</span>
+                            </div>
+                        </label>
+
+                        <label>
+                            Request timeout
+
+                            <div className="input-with-unit">
+                                <input
+                                    type="number"
+                                    min="100"
+                                    step="100"
+                                    value={timeoutMs}
+                                    onChange={event =>
+                                        setTimeoutMs(
+                                            event.target.value
+                                        )
+                                    }
+                                    disabled={saving}
+                                />
+
+                                <span>ms</span>
+                            </div>
+                        </label>
+
+                        <label>
+                            Slow response threshold
+
+                            <div className="input-with-unit">
+                                <input
+                                    type="number"
+                                    min="1"
+                                    step="1"
+                                    value={slowThresholdMs}
+                                    onChange={event =>
+                                        setSlowThresholdMs(
+                                            event.target.value
+                                        )
+                                    }
+                                    disabled={saving}
+                                />
+
+                                <span>ms</span>
+                            </div>
+                        </label>
+                    </div>
 
                     {error && (
                         <p className="form-error">

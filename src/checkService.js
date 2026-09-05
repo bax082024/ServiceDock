@@ -4,11 +4,14 @@ async function checkService(service) {
     let newStatus;
     let responseTimeMs = null;
 
+    const timeoutMs =
+        Number(service.timeout_ms) || 5000;
+
     const startTime = Date.now();
 
     try {
         const response = await fetch(service.url, {
-            signal: AbortSignal.timeout(5000)
+            signal: AbortSignal.timeout(timeoutMs)
         });
 
         responseTimeMs = Date.now() - startTime;

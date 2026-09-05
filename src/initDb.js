@@ -46,7 +46,66 @@ async function initDb() {
         console.log('Added response_time_ms column');
     }
 
+    
+
+    const [monitoringEnabledColumn] = await db.query(`
+        SHOW COLUMNS FROM services LIKE 'monitoring_enabled'
+    `);
+
+    if (monitoringEnabledColumn.length === 0) {
+        await db.query(`
+            ALTER TABLE services
+            ADD COLUMN monitoring_enabled BOOLEAN NOT NULL DEFAULT TRUE
+            AFTER status
+        `);
+
+        console.log('Added monitoring_enabled column');
+    }
+
+    const [checkIntervalColumn] = await db.query(`
+        SHOW COLUMNS FROM services LIKE 'check_interval_seconds'
+    `);
+
+    if (checkIntervalColumn.length === 0) {
+        await db.query(`
+            ALTER TABLE services
+            ADD COLUMN check_interval_seconds INT NOT NULL DEFAULT 30
+            AFTER monitoring_enabled
+        `);
+
+        console.log('Added check_interval_seconds column');
+    }
+
+    const [timeoutColumn] = await db.query(`
+        SHOW COLUMNS FROM services LIKE 'timeout_ms'
+    `);
+
+    if (timeoutColumn.length === 0) {
+        await db.query(`
+            ALTER TABLE services
+            ADD COLUMN timeout_ms INT NOT NULL DEFAULT 5000
+            AFTER check_interval_seconds
+        `);
+
+        console.log('Added timeout_ms column');
+    }
+
+    const [slowThresholdColumn] = await db.query(`
+        SHOW COLUMNS FROM services LIKE 'slow_threshold_ms'
+    `);
+
+    if (slowThresholdColumn.length === 0) {
+        await db.query(`
+            ALTER TABLE services
+            ADD COLUMN slow_threshold_ms INT NOT NULL DEFAULT 500
+            AFTER timeout_ms
+        `);
+
+        console.log('Added slow_threshold_ms column');
+    }
     console.log('Database initialized');
 }
+
+
 
 module.exports = initDb;

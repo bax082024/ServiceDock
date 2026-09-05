@@ -44,14 +44,27 @@ function formatStats(row) {
 router.get('/', async (req, res) => {
     try {
         const [rows] = await db.query(
-            `SELECT id, name, url, status, created_at
+            `SELECT
+                id,
+                name,
+                url,
+                status,
+                monitoring_enabled,
+                check_interval_seconds,
+                timeout_ms,
+                slow_threshold_ms,
+                created_at
              FROM services
              ORDER BY id ASC`
         );
 
         res.status(200).json(rows);
+
     } catch (error) {
-        console.error('Failed to fetch services:', error.message);
+        console.error(
+            'Failed to fetch services:',
+            error.message
+        );
 
         res.status(500).json({
             status: 'error',
@@ -65,7 +78,16 @@ router.get('/:id', async (req, res) => {
         const { id } = req.params;
 
         const [rows] = await db.query(
-            `SELECT id, name, url, status, created_at
+            `SELECT
+                id,
+                name,
+                url,
+                status,
+                monitoring_enabled,
+                check_interval_seconds,
+                timeout_ms,
+                slow_threshold_ms,
+                created_at
              FROM services
              WHERE id = ?`,
             [id]
@@ -79,8 +101,12 @@ router.get('/:id', async (req, res) => {
         }
 
         res.status(200).json(rows[0]);
+
     } catch (error) {
-        console.error('Failed to fetch service:', error.message);
+        console.error(
+            'Failed to fetch service:',
+            error.message
+        );
 
         res.status(500).json({
             status: 'error',
@@ -485,7 +511,15 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, url } = req.body;
+
+        const {
+            name,
+            url,
+            monitoring_enabled,
+            check_interval_seconds,
+            timeout_ms,
+            slow_threshold_ms
+        } = req.body;
 
         if (!name || !name.trim()) {
             return res.status(400).json({
@@ -510,11 +544,74 @@ router.put('/:id', async (req, res) => {
             });
         }
 
+        if (typeof monitoring_enabled !== 'boolean') {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Monitoring enabled must be true or false'
+            });
+        }
+
+        const checkIntervalSeconds =
+            Number(check_interval_seconds);
+
+        const timeoutMs =
+            Number(timeout_ms);
+
+        const slowThresholdMs =
+            Number(slow_threshold_ms);
+
+        if (
+            !Number.isInteger(checkIntervalSeconds) ||
+            checkIntervalSeconds < 1
+        ) {
+            return res.status(400).json({
+                status: 'error',
+                message:
+                    'Check interval must be a whole number greater than 0'
+            });
+        }
+
+        if (
+            !Number.isInteger(timeoutMs) ||
+            timeoutMs < 100
+        ) {
+            return res.status(400).json({
+                status: 'error',
+                message:
+                    'Timeout must be a whole number of at least 100 ms'
+            });
+        }
+
+        if (
+            !Number.isInteger(slowThresholdMs) ||
+            slowThresholdMs < 1
+        ) {
+            return res.status(400).json({
+                status: 'error',
+                message:
+                    'Slow threshold must be a whole number greater than 0'
+            });
+        }
+
         const [result] = await db.query(
             `UPDATE services
-             SET name = ?, url = ?
+             SET
+                name = ?,
+                url = ?,
+                monitoring_enabled = ?,
+                check_interval_seconds = ?,
+                timeout_ms = ?,
+                slow_threshold_ms = ?
              WHERE id = ?`,
-            [name.trim(), url.trim(), id]
+            [
+                name.trim(),
+                url.trim(),
+                monitoring_enabled,
+                checkIntervalSeconds,
+                timeoutMs,
+                slowThresholdMs,
+                id
+            ]
         );
 
         if (result.affectedRows === 0) {
@@ -527,10 +624,20 @@ router.put('/:id', async (req, res) => {
         res.status(200).json({
             id: Number(id),
             name: name.trim(),
-            url: url.trim()
+            url: url.trim(),
+            monitoring_enabled,
+            check_interval_seconds:
+                checkIntervalSeconds,
+            timeout_ms: timeoutMs,
+            slow_threshold_ms:
+                slowThresholdMs
         });
+
     } catch (error) {
-        console.error('Failed to update service:', error.message);
+        console.error(
+            'Failed to update service:',
+            error.message
+        );
 
         res.status(500).json({
             status: 'error',
@@ -544,9 +651,17 @@ router.post('/:id/check', async (req, res) => {
         const { id } = req.params;
 
         const [rows] = await db.query(
-            `SELECT id, name, url, status
-             FROM services
-             WHERE id = ?`,
+            `SELECT
+                id,
+                name,
+                url,
+                status,
+                monitoring_enabled,
+                check_interval_seconds,
+                timeout_ms,
+                slow_threshold_ms
+            FROM services
+            WHERE id = ?`,
             [id]
         );
 
