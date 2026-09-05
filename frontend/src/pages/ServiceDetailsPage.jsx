@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import ResponseTimeChart from '../components/ResponseTimeChart';
 
 import {
     getService,
@@ -234,6 +235,18 @@ function ServiceDetailsPage() {
                         </strong>
                     </div>
                 </div>
+            </section>
+
+            <section className="details-section">
+                <div className="section-heading">
+                    <h3>Response Time</h3>
+
+                    <p>
+                        Response-time history from recent monitoring checks.
+                    </p>
+                </div>
+
+                <ResponseTimeChart checks={checks} />
             </section>
 
             <section className="details-section">
