@@ -2,6 +2,7 @@ const express = require('express');
 const db = require('./db');
 const initDb = require('./initDb');
 const servicesRouter = require('./routes/services');
+const startMonitor = require('./monitor');
 
 const app = express();
 
@@ -40,6 +41,7 @@ app.get('/db-check', async (req, res) => {
 async function startServer() {
     try {
         await initDb();
+        startMonitor();
 
         app.listen(PORT, () => {
             console.log(`ServiceDock API running on port ${PORT}`);
