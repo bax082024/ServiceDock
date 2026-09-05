@@ -16,9 +16,44 @@ async function checkService(service) {
         newStatus = response.ok
             ? 'healthy'
             : 'unhealthy';
+
     } catch (error) {
         responseTimeMs = Date.now() - startTime;
         newStatus = 'unreachable';
+    }
+
+    const wasFailing =
+        service.status === 'unhealthy' ||
+        service.status === 'unreachable';
+
+    const isFailing =
+        newStatus === 'unhealthy' ||
+        newStatus === 'unreachable';
+
+    if (!wasFailing && isFailing) {
+        await db.query(
+            `INSERT INTO incidents (service_id)
+             VALUES (?)`,
+            [service.id]
+        );
+
+        console.log(
+            `[Incident] Started for ${service.name}`
+        );
+    }
+
+    if (wasFailing && !isFailing) {
+        await db.query(
+            `UPDATE incidents
+             SET resolved_at = CURRENT_TIMESTAMP
+             WHERE service_id = ?
+               AND resolved_at IS NULL`,
+            [service.id]
+        );
+
+        console.log(
+            `[Incident] Resolved for ${service.name}`
+        );
     }
 
     await db.query(
@@ -31,7 +66,7 @@ async function checkService(service) {
     await db.query(
         `INSERT INTO service_checks
             (service_id, status, response_time_ms)
-        VALUES (?, ?, ?)`,
+         VALUES (?, ?, ?)`,
         [service.id, newStatus, responseTimeMs]
     );
 
@@ -43,13 +78,14 @@ async function checkService(service) {
 async function checkAllServices() {
     try {
         const [services] = await db.query(
-            `SELECT id, name, url
+            `SELECT id, name, url, status
              FROM services`
         );
 
         await Promise.all(
             services.map(service => checkService(service))
         );
+
     } catch (error) {
         console.error(
             '[Monitor] Failed to check services:',
