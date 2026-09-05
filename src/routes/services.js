@@ -279,6 +279,38 @@ router.get('/:id/stats', async (req, res) => {
             [id]
         );
 
+        const [incidentStatsRows] = await db.query(
+            `SELECT
+                COUNT(*) AS totalIncidents,
+                SUM(resolved_at IS NULL) AS activeIncidents,
+                AVG(
+                    CASE
+                        WHEN resolved_at IS NOT NULL
+                        THEN TIMESTAMPDIFF(
+                            SECOND,
+                            started_at,
+                            resolved_at
+                        )
+                    END
+                ) AS averageIncidentDurationSeconds,
+                MAX(
+                    CASE
+                        WHEN resolved_at IS NOT NULL
+                        THEN TIMESTAMPDIFF(
+                            SECOND,
+                            started_at,
+                            resolved_at
+                        )
+                    END
+                ) AS longestIncidentDurationSeconds,
+                MAX(started_at) AS lastIncidentStartedAt
+            FROM incidents
+            WHERE service_id = ?`,
+            [id]
+        );
+
+        const incidentStats = incidentStatsRows[0];
+
         res.status(200).json({
             service: {
                 id: services[0].id,
@@ -289,7 +321,34 @@ router.get('/:id/stats', async (req, res) => {
                 allTime: formatStats(allTimeRows[0]),
                 last24Hours: formatStats(last24HoursRows[0]),
                 last7Days: formatStats(last7DaysRows[0]),
-                last30Days: formatStats(last30DaysRows[0])
+                last30Days: formatStats(last30DaysRows[0]),
+
+                incidents: {
+                    totalIncidents:
+                        Number(incidentStats.totalIncidents),
+
+                    activeIncidents:
+                        Number(incidentStats.activeIncidents || 0),
+
+                    averageDurationSeconds:
+                        incidentStats.averageIncidentDurationSeconds === null
+                            ? null
+                            : Number(
+                                Number(
+                                    incidentStats.averageIncidentDurationSeconds
+                                ).toFixed(2)
+                            ),
+
+                    longestDurationSeconds:
+                        incidentStats.longestIncidentDurationSeconds === null
+                            ? null
+                            : Number(
+                                incidentStats.longestIncidentDurationSeconds
+                            ),
+
+                    lastIncidentStartedAt:
+                        incidentStats.lastIncidentStartedAt
+                }
             }
         });
     } catch (error) {
