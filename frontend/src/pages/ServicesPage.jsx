@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import EditServiceModal from '../components/EditServiceModal';
+
 import {
     createService,
     getServices
@@ -10,6 +12,8 @@ function ServicesPage() {
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    const [editingService, setEditingService] = useState(null);
 
     const [showAddForm, setShowAddForm] = useState(false);
 
@@ -24,12 +28,14 @@ function ServicesPage() {
             const data = await getServices();
 
             setServices(data);
+            setError(null);
+
         } catch (error) {
             setError(error.message);
+
         } finally {
             setLoading(false);
         }
-        setError(null);
     }
 
     useEffect(() => {
@@ -64,6 +70,7 @@ function ServicesPage() {
 
         } catch (error) {
             setFormError(error.message);
+
         } finally {
             setSaving(false);
         }
@@ -226,8 +233,11 @@ function ServicesPage() {
                                     </Link>
 
                                     <button
-                                        className="secondary-button"
+                                        className="service-action-button"
                                         type="button"
+                                        onClick={() =>
+                                            setEditingService(service)
+                                        }
                                     >
                                         Edit
                                     </button>
@@ -242,6 +252,16 @@ function ServicesPage() {
                         )}
                     </div>
                 </section>
+            )}
+
+            {editingService && (
+                <EditServiceModal
+                    service={editingService}
+                    onClose={() =>
+                        setEditingService(null)
+                    }
+                    onServiceUpdated={loadServices}
+                />
             )}
         </>
     );

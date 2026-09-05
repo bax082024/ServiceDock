@@ -685,6 +685,139 @@ button {
     font-size: 13px;
 }
 
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 24px;
+
+    background: rgba(3, 8, 15, 0.75);
+    backdrop-filter: blur(4px);
+}
+
+.service-modal {
+    width: 100%;
+    max-width: 520px;
+
+    padding: 28px;
+
+    border: 1px solid #263247;
+    border-radius: 14px;
+
+    background: #111823;
+
+    box-shadow:
+        0 24px 80px rgba(0, 0, 0, 0.45);
+}
+
+.modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    margin-bottom: 26px;
+}
+
+.modal-header h3 {
+    margin: 6px 0 0;
+    font-size: 24px;
+}
+
+.modal-close {
+    border: 0;
+    background: transparent;
+    color: #8190a8;
+
+    font-size: 28px;
+    line-height: 1;
+
+    cursor: pointer;
+}
+
+.modal-close:hover {
+    color: #ffffff;
+}
+
+.service-form {
+    display: grid;
+    gap: 20px;
+}
+
+.service-form label {
+    display: grid;
+    gap: 8px;
+
+    color: #91a2bd;
+    font-size: 13px;
+}
+
+.service-form input {
+    width: 100%;
+    box-sizing: border-box;
+
+    padding: 12px 14px;
+
+    border: 1px solid #29374d;
+    border-radius: 8px;
+
+    background: #0b111b;
+    color: #f4f7fb;
+
+    font: inherit;
+    outline: none;
+}
+
+.service-form input:focus {
+    border-color: #397cff;
+}
+
+.form-error {
+    margin: 0;
+    color: #ff6174;
+    font-size: 13px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+
+    margin-top: 6px;
+}
+
+.primary-button,
+.secondary-button {
+    padding: 10px 16px;
+
+    border-radius: 8px;
+
+    font: inherit;
+    cursor: pointer;
+}
+
+.primary-button {
+    border: 1px solid #397cff;
+    background: #397cff;
+    color: white;
+}
+
+.secondary-button {
+    border: 1px solid #29374d;
+    background: transparent;
+    color: #b8c5d9;
+}
+
+.primary-button:disabled,
+.secondary-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 @media (max-width: 900px) {
     .global-incident-row {
         grid-template-columns: 1fr;
