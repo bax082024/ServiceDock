@@ -97,6 +97,71 @@ router.get('/:id/checks', async (req, res) => {
     }
 });
 
+router.get('/:id/stats', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const [services] = await db.query(
+            `SELECT id, name, status
+             FROM services
+             WHERE id = ?`,
+            [id]
+        );
+
+        if (services.length === 0) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Service not found'
+            });
+        }
+
+        const [stats] = await db.query(
+            `SELECT
+                COUNT(*) AS totalChecks,
+                SUM(status = 'healthy') AS healthyChecks,
+                SUM(status != 'healthy') AS failedChecks
+             FROM service_checks
+             WHERE service_id = ?`,
+            [id]
+        );
+
+        const totalChecks = Number(stats[0].totalChecks);
+        const healthyChecks = Number(stats[0].healthyChecks || 0);
+        const failedChecks = Number(stats[0].failedChecks || 0);
+
+        const uptimePercentage =
+            totalChecks === 0
+                ? 0
+                : Number(
+                    ((healthyChecks / totalChecks) * 100).toFixed(2)
+                );
+
+        res.status(200).json({
+            service: {
+                id: services[0].id,
+                name: services[0].name,
+                status: services[0].status
+            },
+            stats: {
+                totalChecks,
+                healthyChecks,
+                failedChecks,
+                uptimePercentage
+            }
+        });
+    } catch (error) {
+        console.error(
+            'Failed to fetch service stats:',
+            error.message
+        );
+
+        res.status(500).json({
+            status: 'error',
+            message: 'Failed to fetch service stats'
+        });
+    }
+});
+
 router.post('/', async (req, res) => {
     try {
         const { name, url } = req.body;
