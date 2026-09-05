@@ -76,6 +76,7 @@ button {
     color: #8e9aaf;
     text-align: left;
     cursor: pointer;
+    text-decoration: none;
 }
 
 .nav-item:hover {
