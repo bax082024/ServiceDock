@@ -33,29 +33,40 @@ export function ServiceDockProvider({ children }) {
         useState(false);
 
     function addNotification(notification) {
-        const id = crypto.randomUUID();
+        setNotifications(current => {
+            const exists = current.some(
+                item => item.id === notification.id
+            );
 
-        const item = {
-            id,
-            ...notification,
-            createdAt: new Date().toISOString(),
-            read: false
-        };
+            if (exists) {
+                return current;
+            }
 
-        setNotifications(current => [
-            ...current,
-            item
-        ]);
+            return [
+                ...current,
+                notification
+            ];
+        });
 
-        setNotificationHistory(current => [
-            item,
-            ...current
-        ]);
+        setNotificationHistory(current => {
+            const exists = current.some(
+                item => item.id === notification.id
+            );
+
+            if (exists) {
+                return current;
+            }
+
+            return [
+                notification,
+                ...current
+            ];
+        });
 
         setTimeout(() => {
             setNotifications(current =>
                 current.filter(
-                    item => item.id !== id
+                    item => item.id !== notification.id
                 )
             );
         }, 5000);
@@ -134,34 +145,6 @@ export function ServiceDockProvider({ children }) {
             subscribeToDashboardEvents({
                 onServiceCheck: event => {
                     setLatestServiceCheck(event);
-
-                    const wasFailing =
-                        event.previousStatus === 'unhealthy' ||
-                        event.previousStatus === 'unreachable';
-
-                    const isFailing =
-                        event.status === 'unhealthy' ||
-                        event.status === 'unreachable';
-
-                    if (!wasFailing && isFailing) {
-                        addNotification({
-                            type: 'error',
-                            title: `${event.name} is down`,
-                            message:
-                                event.status === 'unreachable'
-                                    ? 'Service is unreachable.'
-                                    : 'Service returned an unhealthy response.'
-                        });
-                    }
-
-                    if (wasFailing && !isFailing) {
-                        addNotification({
-                            type: 'success',
-                            title: `${event.name} recovered`,
-                            message:
-                                `Response time: ${event.responseTimeMs} ms`
-                        });
-                    }
                 },
 
                 onIncidentStarted: event => {
@@ -170,6 +153,10 @@ export function ServiceDockProvider({ children }) {
 
                 onIncidentResolved: event => {
                     setLatestActivityEvent(event);
+                },
+
+                onNotificationCreated: notification => {
+                    addNotification(notification);
                 },
 
                 onOpen: () => {

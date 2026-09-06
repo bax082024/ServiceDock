@@ -1,10 +1,14 @@
 const API_URL = 'http://localhost:3000';
 
 export async function getServices() {
-    const response = await fetch(`${API_URL}/services`);
+    const response = await fetch(
+        `${API_URL}/services`
+    );
 
     if (!response.ok) {
-        throw new Error('Failed to load services');
+        throw new Error(
+            'Failed to load services'
+        );
     }
 
     return response.json();
@@ -30,7 +34,9 @@ export async function getServiceStats(id) {
     );
 
     if (!response.ok) {
-        throw new Error('Failed to load service stats');
+        throw new Error(
+            'Failed to load service stats'
+        );
     }
 
     return response.json();
@@ -42,7 +48,9 @@ export async function getServiceIncidents(id) {
     );
 
     if (!response.ok) {
-        throw new Error('Failed to load service incidents');
+        throw new Error(
+            'Failed to load service incidents'
+        );
     }
 
     return response.json();
@@ -54,7 +62,9 @@ export async function getService(id) {
     );
 
     if (!response.ok) {
-        throw new Error('Failed to load service');
+        throw new Error(
+            'Failed to load service'
+        );
     }
 
     return response.json();
@@ -66,7 +76,9 @@ export async function getServiceChecks(id) {
     );
 
     if (!response.ok) {
-        throw new Error('Failed to load service checks');
+        throw new Error(
+            'Failed to load service checks'
+        );
     }
 
     return response.json();
@@ -77,9 +89,11 @@ export async function createService(service) {
         `${API_URL}/services`,
         {
             method: 'POST',
+
             headers: {
                 'Content-Type': 'application/json'
             },
+
             body: JSON.stringify(service)
         }
     );
@@ -88,7 +102,8 @@ export async function createService(service) {
         const error = await response.json();
 
         throw new Error(
-            error.message || 'Failed to create service'
+            error.message ||
+            'Failed to create service'
         );
     }
 
@@ -101,20 +116,27 @@ export async function getIncidents() {
     );
 
     if (!response.ok) {
-        throw new Error('Failed to load incidents');
+        throw new Error(
+            'Failed to load incidents'
+        );
     }
 
     return response.json();
 }
 
-export async function updateService(id, service) {
+export async function updateService(
+    id,
+    service
+) {
     const response = await fetch(
         `${API_URL}/services/${id}`,
         {
             method: 'PUT',
+
             headers: {
                 'Content-Type': 'application/json'
             },
+
             body: JSON.stringify(service)
         }
     );
@@ -123,7 +145,8 @@ export async function updateService(id, service) {
         const error = await response.json();
 
         throw new Error(
-            error.message || 'Failed to update service'
+            error.message ||
+            'Failed to update service'
         );
     }
 
@@ -132,7 +155,7 @@ export async function updateService(id, service) {
 
 export async function deleteService(id) {
     const response = await fetch(
-        `http://localhost:3000/services/${id}`,
+        `${API_URL}/services/${id}`,
         {
             method: 'DELETE'
         }
@@ -142,7 +165,8 @@ export async function deleteService(id) {
         const error = await response.json();
 
         throw new Error(
-            error.message || 'Failed to delete service'
+            error.message ||
+            'Failed to delete service'
         );
     }
 
@@ -151,7 +175,7 @@ export async function deleteService(id) {
 
 export async function checkService(id) {
     const response = await fetch(
-        `http://localhost:3000/services/${id}/check`,
+        `${API_URL}/services/${id}/check`,
         {
             method: 'POST'
         }
@@ -161,7 +185,8 @@ export async function checkService(id) {
         const error = await response.json();
 
         throw new Error(
-            error.message || 'Failed to check service'
+            error.message ||
+            'Failed to check service'
         );
     }
 
@@ -203,11 +228,14 @@ export function subscribeToDashboardEvents({
     onServiceCheck,
     onIncidentStarted,
     onIncidentResolved,
+    onNotificationCreated,
     onOpen,
     onError
 }) {
     const eventSource =
-        new EventSource(`${API_URL}/events`);
+        new EventSource(
+            `${API_URL}/events`
+        );
 
     eventSource.onopen = () => {
         if (onOpen) {
@@ -218,7 +246,8 @@ export function subscribeToDashboardEvents({
     eventSource.addEventListener(
         'service-check',
         event => {
-            const data = JSON.parse(event.data);
+            const data =
+                JSON.parse(event.data);
 
             if (onServiceCheck) {
                 onServiceCheck(data);
@@ -229,7 +258,8 @@ export function subscribeToDashboardEvents({
     eventSource.addEventListener(
         'incident-started',
         event => {
-            const data = JSON.parse(event.data);
+            const data =
+                JSON.parse(event.data);
 
             if (onIncidentStarted) {
                 onIncidentStarted(data);
@@ -240,10 +270,23 @@ export function subscribeToDashboardEvents({
     eventSource.addEventListener(
         'incident-resolved',
         event => {
-            const data = JSON.parse(event.data);
+            const data =
+                JSON.parse(event.data);
 
             if (onIncidentResolved) {
                 onIncidentResolved(data);
+            }
+        }
+    );
+
+    eventSource.addEventListener(
+        'notification-created',
+        event => {
+            const data =
+                JSON.parse(event.data);
+
+            if (onNotificationCreated) {
+                onNotificationCreated(data);
             }
         }
     );

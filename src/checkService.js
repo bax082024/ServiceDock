@@ -44,6 +44,9 @@ async function checkService(service) {
             [service.id]
         );
 
+        const incidentId =
+            incidentResult.insertId;
+
         const notificationTitle =
             `${service.name} is down`;
 
@@ -52,7 +55,7 @@ async function checkService(service) {
                 ? 'Service is unreachable.'
                 : 'Service returned an unhealthy response.';
 
-        await db.query(
+        const [notificationResult] = await db.query(
             `INSERT INTO notifications
                 (
                     service_id,
@@ -64,17 +67,34 @@ async function checkService(service) {
              VALUES (?, ?, ?, ?, ?)`,
             [
                 service.id,
-                incidentResult.insertId,
+                incidentId,
                 'error',
                 notificationTitle,
                 notificationMessage
             ]
         );
 
+        const notification = {
+            id: notificationResult.insertId,
+            serviceId: service.id,
+            incidentId,
+            serviceName: service.name,
+            type: 'error',
+            title: notificationTitle,
+            message: notificationMessage,
+            read: false,
+            createdAt: new Date().toISOString()
+        };
+
+        publishEvent(
+            'notification-created',
+            notification
+        );
+
         publishEvent(
             'incident-started',
             {
-                incident_id: incidentResult.insertId,
+                incident_id: incidentId,
                 service_id: service.id,
                 service_name: service.name,
                 type: 'incident_started',
@@ -116,7 +136,7 @@ async function checkService(service) {
             const notificationMessage =
                 `Response time: ${responseTimeMs} ms`;
 
-            await db.query(
+            const [notificationResult] = await db.query(
                 `INSERT INTO notifications
                     (
                         service_id,
@@ -133,6 +153,23 @@ async function checkService(service) {
                     notificationTitle,
                     notificationMessage
                 ]
+            );
+
+            const notification = {
+                id: notificationResult.insertId,
+                serviceId: service.id,
+                incidentId,
+                serviceName: service.name,
+                type: 'success',
+                title: notificationTitle,
+                message: notificationMessage,
+                read: false,
+                createdAt: new Date().toISOString()
+            };
+
+            publishEvent(
+                'notification-created',
+                notification
             );
 
             publishEvent(
