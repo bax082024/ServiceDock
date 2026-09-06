@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 
 import {
-    getDashboardSummary,
-    subscribeToDashboardEvents
+    getDashboardSummary
 } from '../services/api';
+
+import {
+    useServiceDock
+} from '../context/ServiceDockContext';
 
 import ServiceCard from '../components/ServiceCard';
 
@@ -16,8 +19,10 @@ function DashboardPage() {
     const [loading, setLoading] =
         useState(cachedDashboard === null);
     const [error, setError] = useState(null);
-    const [connectionStatus, setConnectionStatus] =
-    useState('connecting');
+    const {
+        connectionStatus,
+        latestServiceCheck
+    } = useServiceDock();
 
     async function loadDashboard(showError = false) {
         try {
@@ -46,51 +51,7 @@ function DashboardPage() {
     }
 
     useEffect(() => {
-        let disconnectTimer = null;
-        let connectionIsDisconnected = false;
-
         loadDashboard(true);
-
-        const unsubscribe =
-            subscribeToDashboardEvents({
-                onServiceCheck: () => {
-                    loadDashboard(false);
-                },
-
-                onOpen: () => {
-                    connectionIsDisconnected = false;
-
-                    if (disconnectTimer) {
-                        clearTimeout(disconnectTimer);
-                        disconnectTimer = null;
-                    }
-
-                    setConnectionStatus('connected');
-
-                    // Immediately refresh after reconnecting
-                    // so the dashboard catches up.
-                    loadDashboard(false);
-                },
-
-                onError: () => {
-                    if (connectionIsDisconnected) {
-                        return;
-                    }
-
-                    setConnectionStatus('reconnecting');
-
-                    if (!disconnectTimer) {
-                        disconnectTimer = setTimeout(() => {
-                            connectionIsDisconnected = true;
-                            disconnectTimer = null;
-
-                            setConnectionStatus(
-                                'disconnected'
-                            );
-                        }, 10000);
-                    }
-                }
-            });
 
         const fallbackInterval =
             setInterval(() => {
@@ -98,15 +59,17 @@ function DashboardPage() {
             }, 30000);
 
         return () => {
-            unsubscribe();
-
             clearInterval(fallbackInterval);
-
-            if (disconnectTimer) {
-                clearTimeout(disconnectTimer);
-            }
         };
     }, []);
+
+    useEffect(() => {
+        if (!latestServiceCheck) {
+            return;
+        }
+
+        loadDashboard(false);
+    }, [latestServiceCheck]);
 
     if (loading) {
         return (

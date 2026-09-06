@@ -2,14 +2,21 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import {
-    getIncidents,
-    subscribeToDashboardEvents
+    getIncidents
 } from '../services/api';
+
+import {
+    useServiceDock
+} from '../context/ServiceDockContext';
 
 function IncidentsPage() {
     const [incidents, setIncidents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    const {
+        latestServiceCheck
+    } = useServiceDock();
 
     async function loadIncidents() {
         try {
@@ -28,35 +35,23 @@ function IncidentsPage() {
     useEffect(() => {
         loadIncidents();
 
-        const unsubscribe =
-            subscribeToDashboardEvents({
-                onServiceCheck: () => {
-                    loadIncidents();
-                },
-
-                onOpen: () => {
-                    console.log(
-                        '[Incidents] Live connection established'
-                    );
-                },
-
-                onError: () => {
-                    console.warn(
-                        '[Incidents] Live connection interrupted'
-                    );
-                }
-            });
-
         const fallbackInterval =
             setInterval(() => {
                 loadIncidents();
             }, 30000);
 
         return () => {
-            unsubscribe();
             clearInterval(fallbackInterval);
         };
     }, []);
+
+    useEffect(() => {
+        if (!latestServiceCheck) {
+            return;
+        }
+
+        loadIncidents();
+    }, [latestServiceCheck]);
 
     const activeIncidents = incidents.filter(
         incident => incident.status === 'active'

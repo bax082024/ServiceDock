@@ -1428,6 +1428,22 @@ button {
     font-size: 13px;
 }
 
+.sidebar-footer.connected .system-dot {
+    background: #35d07f;
+}
+
+.sidebar-footer.connecting .system-dot {
+    background: #578cf5;
+}
+
+.sidebar-footer.reconnecting .system-dot {
+    background: #f0a13e;
+}
+
+.sidebar-footer.disconnected .system-dot {
+    background: #f05d68;
+}
+
 @media (max-width: 1000px) {
     .dashboard-secondary-grid {
         grid-template-columns: 1fr;

@@ -6,9 +6,12 @@ import DeleteServiceModal from '../components/DeleteServiceModal';
 
 import {
     createService,
-    getServices,
-    subscribeToDashboardEvents
+    getServices
 } from '../services/api';
+
+import {
+    useServiceDock
+} from '../context/ServiceDockContext';
 
 function ServicesPage() {
     const [services, setServices] = useState([]);
@@ -17,6 +20,10 @@ function ServicesPage() {
 
     const [editingService, setEditingService] = useState(null);
     const [deletingService, setDeletingService] = useState(null);
+
+    const {
+        latestServiceCheck
+    } = useServiceDock();
 
     const [showAddForm, setShowAddForm] = useState(false);
 
@@ -44,35 +51,23 @@ function ServicesPage() {
     useEffect(() => {
         loadServices();
 
-        const unsubscribe =
-            subscribeToDashboardEvents({
-                onServiceCheck: () => {
-                    loadServices();
-                },
-
-                onOpen: () => {
-                    console.log(
-                        '[Services] Live connection established'
-                    );
-                },
-
-                onError: () => {
-                    console.warn(
-                        '[Services] Live connection interrupted'
-                    );
-                }
-            });
-
         const fallbackInterval =
             setInterval(() => {
                 loadServices();
             }, 30000);
 
         return () => {
-            unsubscribe();
             clearInterval(fallbackInterval);
         };
     }, []);
+
+    useEffect(() => {
+        if (!latestServiceCheck) {
+            return;
+        }
+
+        loadServices();
+    }, [latestServiceCheck]);
 
     async function handleAddService(event) {
         event.preventDefault();

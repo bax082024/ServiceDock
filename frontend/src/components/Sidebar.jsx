@@ -1,6 +1,13 @@
 import { NavLink } from 'react-router-dom';
 
+import {
+    useServiceDock
+} from '../context/ServiceDockContext';
+
 function Sidebar() {
+    const {
+        connectionStatus
+    } = useServiceDock();
     return (
         <aside className="sidebar">
             <div className="sidebar-brand">
@@ -42,9 +49,24 @@ function Sidebar() {
                 </NavLink>
             </nav>
 
-            <div className="sidebar-footer">
+            <div
+                className={
+                    `sidebar-footer ${connectionStatus}`
+                }
+            >
                 <span className="system-dot"></span>
-                Monitoring active
+
+                {connectionStatus === 'connected' &&
+                    'Live connected'}
+
+                {connectionStatus === 'connecting' &&
+                    'Connecting...'}
+
+                {connectionStatus === 'reconnecting' &&
+                    'Reconnecting...'}
+
+                {connectionStatus === 'disconnected' &&
+                    'Disconnected'}
             </div>
         </aside>
     );
