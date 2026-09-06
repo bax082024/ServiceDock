@@ -212,19 +212,59 @@ function ServicesPage() {
                                         }
                                     ></span>
 
-                                    <div>
+                                    <div className="management-service-content">
                                         <h4>{service.name}</h4>
-                                        <p>{service.url}</p>
+
+                                        <p className="management-service-url">
+                                            {service.url}
+                                        </p>
+
+                                        {service.monitoring_enabled ? (
+                                            <div className="monitoring-summary">
+                                                <span>
+                                                    Every {service.check_interval_seconds}s
+                                                </span>
+
+                                                <span className="summary-separator">
+                                                    •
+                                                </span>
+
+                                                <span>
+                                                    Timeout {service.timeout_ms}ms
+                                                </span>
+
+                                                <span className="summary-separator">
+                                                    •
+                                                </span>
+
+                                                <span>
+                                                    Slow &gt; {service.slow_threshold_ms}ms
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <div className="monitoring-summary paused">
+                                                <span className="paused-dot"></span>
+                                                Automatic monitoring paused
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
-                                <span
-                                    className={
-                                        `status-badge ${service.status}`
-                                    }
-                                >
-                                    {service.status}
-                                </span>
+                                <div className="service-status-badges">
+                                    <span
+                                        className={
+                                            `status-badge ${service.status}`
+                                        }
+                                    >
+                                        {service.status}
+                                    </span>
+
+                                    {!service.monitoring_enabled && (
+                                        <span className="monitoring-badge paused">
+                                            PAUSED
+                                        </span>
+                                    )}
+                                </div>
 
                                 <div className="management-actions">
                                     <Link

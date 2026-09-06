@@ -522,7 +522,7 @@ button {
 
 .management-row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 130px 150px;
+    grid-template-columns: minmax(0, 1fr) 170px auto;
     align-items: center;
     gap: 24px;
     padding: 18px 20px;
@@ -560,8 +560,9 @@ button {
 
 .management-actions {
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
     gap: 8px;
+    flex-shrink: 0;
 }
 
 .add-service-panel {
@@ -1097,13 +1098,87 @@ button {
     }
 }
 
+.management-service {
+    align-items: flex-start;
+}
+
+.management-service-content {
+    min-width: 0;
+}
+
+.management-service-url {
+    margin: 5px 0 0;
+    overflow: hidden;
+
+    color: #758198;
+    font-size: 13px;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.monitoring-summary {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+
+    margin-top: 8px;
+
+    color: #66748b;
+    font-size: 11px;
+}
+
+.summary-separator {
+    color: #3d4b60;
+}
+
+.monitoring-summary.paused {
+    color: #f0a13e;
+}
+
+.paused-dot {
+    width: 7px;
+    height: 7px;
+
+    border-radius: 50%;
+
+    background: #f0a13e;
+}
+
+.service-status-badges {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    gap: 6px;
+}
+
+.monitoring-badge {
+    padding: 5px 8px;
+
+    border: 1px solid #5b4728;
+    border-radius: 6px;
+
+    background: #261e12;
+
+    color: #f0a13e;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+.monitoring-badge.paused {
+    color: #f0a13e;
+}
+
 @media (max-width: 800px) {
     .page-header {
         flex-direction: column;
     }
 
     .management-row {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr) 130px 220px;
         gap: 14px;
     }
 
