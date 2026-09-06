@@ -2,22 +2,31 @@ import { useNavigate } from 'react-router-dom';
 
 function ServiceCard({ service }) {
     const navigate = useNavigate();
-    const stats = service.stats?.allTime;
-    const incidentStats = service.stats?.incidents;
 
-    const averageResponse =
-        stats?.responseTime?.averageMs;
+    const responseTime =
+        service.last_response_time_ms;
+
+    const isPaused =
+        !service.monitoring_enabled;
+
+    const isSlow =
+        responseTime != null &&
+        responseTime > service.slow_threshold_ms;
 
     return (
         <article
             className="service-card clickable"
-            onClick={() => navigate(`/services/${service.id}`)}
+            onClick={() =>
+                navigate(`/services/${service.id}`)
+            }
         >
             <div className="service-card-header">
                 <div>
                     <div className="service-title">
                         <span
-                            className={`status-dot ${service.status}`}
+                            className={
+                                `status-dot ${service.status}`
+                            }
                         ></span>
 
                         <h3>{service.name}</h3>
@@ -28,43 +37,69 @@ function ServiceCard({ service }) {
                     </p>
                 </div>
 
-                <span
-                    className={`status-badge ${service.status}`}
-                >
-                    {service.status}
-                </span>
+                <div className="service-card-badges">
+                    <span
+                        className={
+                            `status-badge ${service.status}`
+                        }
+                    >
+                        {service.status}
+                    </span>
+
+                    {isPaused && (
+                        <span className="monitoring-badge paused">
+                            PAUSED
+                        </span>
+                    )}
+                </div>
             </div>
 
             <div className="service-metrics">
                 <div className="metric">
-                    <span>Uptime</span>
-                    <strong>
-                        {stats?.uptimePercentage ?? 0}%
+                    <span>Last response</span>
+
+                    <strong
+                        className={
+                            isSlow
+                                ? 'metric-warning'
+                                : ''
+                        }
+                    >
+                        {responseTime != null
+                            ? `${responseTime} ms`
+                            : 'N/A'}
                     </strong>
                 </div>
 
                 <div className="metric">
-                    <span>Avg response</span>
+                    <span>Check interval</span>
+
                     <strong>
-                        {averageResponse ?? 'N/A'}
-                        {averageResponse !== null &&
-                         averageResponse !== undefined
-                            ? ' ms'
-                            : ''}
+                        {service.check_interval_seconds}s
                     </strong>
                 </div>
 
                 <div className="metric">
-                    <span>Incidents</span>
+                    <span>Timeout</span>
+
                     <strong>
-                        {incidentStats?.totalIncidents ?? 0}
+                        {service.timeout_ms} ms
                     </strong>
                 </div>
 
                 <div className="metric">
-                    <span>Active</span>
-                    <strong>
-                        {incidentStats?.activeIncidents ?? 0}
+                    <span>Monitoring</span>
+
+                    <strong
+                        className={
+                            isPaused
+                                ? 'monitoring-text paused'
+                                : 'monitoring-text active'
+                        }
+                    >
+                        {isPaused
+                            ? 'Paused'
+                            : 'Active'}
                     </strong>
                 </div>
             </div>

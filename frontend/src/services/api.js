@@ -10,6 +10,20 @@ export async function getServices() {
     return response.json();
 }
 
+export async function getDashboardSummary() {
+    const response = await fetch(
+        `${API_URL}/dashboard/summary`
+    );
+
+    if (!response.ok) {
+        throw new Error(
+            'Failed to load dashboard summary'
+        );
+    }
+
+    return response.json();
+}
+
 export async function getServiceStats(id) {
     const response = await fetch(
         `${API_URL}/services/${id}/stats`

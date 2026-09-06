@@ -5,6 +5,8 @@ const servicesRouter = require('./routes/services');
 const startMonitor = require('./monitor');
 const cors = require('cors');
 const incidentsRouter = require('./routes/incidents');
+const dashboardRouter =
+    require('./routes/dashboard');
 
 const app = express();
 
@@ -18,6 +20,7 @@ app.use(express.json());
 
 app.use('/services', servicesRouter);
 app.use('/incidents', incidentsRouter);
+app.use('/dashboard', dashboardRouter);
 
 app.get('/health', (req, res) => {
     res.status(200).json({

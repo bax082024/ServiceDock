@@ -1,47 +1,36 @@
 import { useEffect, useState } from 'react';
 
 import {
-    getServices,
-    getServiceStats
+    getDashboardSummary
 } from '../services/api';
 
 import ServiceCard from '../components/ServiceCard';
 
 function DashboardPage() {
-    const [services, setServices] = useState([]);
+    const [dashboard, setDashboard] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    async function loadServices() {
+    async function loadDashboard() {
         try {
-            const data = await getServices();
+            const data = await getDashboardSummary();
 
-            const servicesWithStats = await Promise.all(
-                data.map(async service => {
-                    const stats = await getServiceStats(service.id);
-
-                    return {
-                        ...service,
-                        stats: stats.stats
-                    };
-                })
-            );
-
-            setServices(servicesWithStats);
+            setDashboard(data);
             setError(null);
 
         } catch (error) {
             setError(error.message);
+
         } finally {
             setLoading(false);
         }
     }
 
     useEffect(() => {
-        loadServices();
+        loadDashboard();
 
         const interval = setInterval(() => {
-            loadServices();
+            loadDashboard();
         }, 5000);
 
         return () => {
@@ -49,20 +38,27 @@ function DashboardPage() {
         };
     }, []);
 
+    if (loading) {
+        return (
+            <p className="message">
+                Loading dashboard...
+            </p>
+        );
+    }
 
-    const healthyServices = services.filter(
-        service => service.status === 'healthy'
-    ).length;
+    if (error) {
+        return (
+            <p className="message error">
+                Error: {error}
+            </p>
+        );
+    }
 
-    const failingServices =
-        services.length - healthyServices;
-
-    const activeIncidents = services.reduce(
-        (total, service) =>
-            total +
-            (service.stats?.incidents?.activeIncidents ?? 0),
-        0
-    );
+    const {
+        overview,
+        services,
+        recentActivity
+    } = dashboard;
 
     return (
         <>
@@ -86,65 +82,155 @@ function DashboardPage() {
                 </div>
             </header>
 
-            {loading && (
-                <p className="message">
-                    Loading services...
-                </p>
-            )}
+            <section className="overview-grid">
+                <div className="overview-card">
+                    <span>Total services</span>
 
-            {error && (
-                <p className="message error">
-                    Error: {error}
-                </p>
-            )}
+                    <strong>
+                        {overview.totalServices}
+                    </strong>
+                </div>
 
-            {!loading && !error && (
-                <>
-                    <section className="overview-grid">
-                        <div className="overview-card">
-                            <span>Total services</span>
-                            <strong>{services.length}</strong>
+                <div className="overview-card">
+                    <span>Healthy</span>
+
+                    <strong>
+                        {overview.healthyServices}
+                    </strong>
+                </div>
+
+                <div className="overview-card">
+                    <span>Failing</span>
+
+                    <strong>
+                        {overview.failingServices}
+                    </strong>
+                </div>
+
+                <div className="overview-card">
+                    <span>Active incidents</span>
+
+                    <strong>
+                        {overview.activeIncidents}
+                    </strong>
+                </div>
+            </section>
+
+            <section className="services-section">
+                <div className="section-heading">
+                    <div>
+                        <h3>Monitored Services</h3>
+
+                        <p>
+                            Current service health and
+                            performance.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="services-grid">
+                    {services.map(service => (
+                        <ServiceCard
+                            key={service.id}
+                            service={service}
+                        />
+                    ))}
+                </div>
+            </section>
+
+            <section className="dashboard-secondary-grid">
+                <div className="dashboard-panel">
+                    <div className="section-heading">
+                        <div>
+                            <h3>System Overview</h3>
+
+                            <p>
+                                Overall monitoring statistics.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="dashboard-stat-list">
+                        <div>
+                            <span>Average uptime</span>
+
+                            <strong>
+                                {overview.averageUptime}%
+                            </strong>
                         </div>
 
-                        <div className="overview-card">
-                            <span>Healthy</span>
-                            <strong>{healthyServices}</strong>
+                        <div>
+                            <span>Total incidents</span>
+
+                            <strong>
+                                {overview.totalIncidents}
+                            </strong>
                         </div>
 
-                        <div className="overview-card">
-                            <span>Failing</span>
-                            <strong>{failingServices}</strong>
+                        <div>
+                            <span>Paused services</span>
+
+                            <strong>
+                                {overview.pausedServices}
+                            </strong>
                         </div>
+                    </div>
+                </div>
 
-                        <div className="overview-card">
-                            <span>Active incidents</span>
-                            <strong>{activeIncidents}</strong>
+                <div className="dashboard-panel">
+                    <div className="section-heading">
+                        <div>
+                            <h3>Recent Activity</h3>
+
+                            <p>
+                                Latest incidents and recoveries.
+                            </p>
                         </div>
-                    </section>
+                    </div>
 
-                    <section className="services-section">
-                        <div className="section-heading">
-                            <div>
-                                <h3>Monitored Services</h3>
+                    <div className="activity-list">
+                        {recentActivity.map(activity => (
+                            <div
+                                className="activity-row"
+                                key={
+                                    `${activity.type}-${activity.incident_id}`
+                                }
+                            >
+                                <span
+                                    className={
+                                        `activity-dot ${activity.type}`
+                                    }
+                                ></span>
 
-                                <p>
-                                    Current service health and
-                                    performance.
-                                </p>
+                                <div className="activity-content">
+                                    <strong>
+                                        {activity.service_name}
+                                    </strong>
+
+                                    <span>
+                                        {activity.type ===
+                                        'incident_started'
+                                            ? 'Incident started'
+                                            : 'Service recovered'}
+                                    </span>
+                                </div>
+
+                                <time>
+                                    {new Date(
+                                        activity.event_at
+                                    ).toLocaleString()}
+                                </time>
                             </div>
-                        </div>
+                        ))}
 
-                        <div className="services-grid">
-                            {services.map(service => (
-                                <ServiceCard
-                                    key={service.id}
-                                    service={service}
-                                />
-                            ))}
-                        </div>
-                    </section>
-                </>
-            )}
+                        {recentActivity.length === 0 && (
+                            <div className="empty-state">
+                                No recent activity.
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </section>
         </>
     );
 }

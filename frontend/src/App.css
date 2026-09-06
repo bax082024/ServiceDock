@@ -1250,6 +1250,155 @@ button {
     gap: 10px;
 }
 
+.service-card-badges {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.metric-warning {
+    color: #f0a13e;
+}
+
+.monitoring-text.active {
+    color: #4bd98c;
+}
+
+.monitoring-text.paused {
+    color: #f0a13e;
+}
+
+.dashboard-secondary-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: 18px;
+
+    margin-top: 42px;
+}
+
+.dashboard-panel {
+    padding: 22px;
+
+    border: 1px solid #202a3a;
+    border-radius: 12px;
+
+    background: #111823;
+}
+
+.dashboard-panel .section-heading {
+    margin-bottom: 20px;
+}
+
+.dashboard-stat-list {
+    display: grid;
+}
+
+.dashboard-stat-list > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+
+    padding: 16px 0;
+
+    border-bottom: 1px solid #202938;
+}
+
+.dashboard-stat-list > div:first-child {
+    padding-top: 0;
+}
+
+.dashboard-stat-list > div:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.dashboard-stat-list span {
+    color: #758198;
+    font-size: 13px;
+}
+
+.dashboard-stat-list strong {
+    font-size: 18px;
+}
+
+.activity-list {
+    overflow: hidden;
+
+    border: 1px solid #202938;
+    border-radius: 10px;
+
+    background: #0e151f;
+}
+
+.activity-row {
+    display: grid;
+    grid-template-columns: 10px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+
+    padding: 14px 16px;
+
+    border-bottom: 1px solid #202938;
+}
+
+.activity-row:last-child {
+    border-bottom: 0;
+}
+
+.activity-dot {
+    width: 8px;
+    height: 8px;
+
+    border-radius: 50%;
+}
+
+.activity-dot.incident_started {
+    background: #f05d68;
+}
+
+.activity-dot.incident_resolved {
+    background: #35d07f;
+}
+
+.activity-content {
+    display: grid;
+    gap: 4px;
+}
+
+.activity-content strong {
+    font-size: 13px;
+}
+
+.activity-content span {
+    color: #758198;
+    font-size: 12px;
+}
+
+.activity-row time {
+    color: #718099;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+@media (max-width: 1000px) {
+    .dashboard-secondary-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 650px) {
+    .activity-row {
+        grid-template-columns: 10px 1fr;
+    }
+
+    .activity-row time {
+        grid-column: 2;
+    }
+}
+
 @media (max-width: 600px) {
     .monitoring-details-row {
         align-items: flex-start;
