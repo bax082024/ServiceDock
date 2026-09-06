@@ -18,6 +18,9 @@ export function ServiceDockProvider({ children }) {
     const [latestServiceCheck, setLatestServiceCheck] =
         useState(null);
 
+    const [latestActivityEvent, setLatestActivityEvent] =
+        useState(null);
+
     const [notifications, setNotifications] =
         useState([]);
 
@@ -122,6 +125,14 @@ export function ServiceDockProvider({ children }) {
                     }
                 },
 
+                onIncidentStarted: event => {
+                    setLatestActivityEvent(event);
+                },
+
+                onIncidentResolved: event => {
+                    setLatestActivityEvent(event);
+                },
+
                 onOpen: () => {
                     connectionIsDisconnected = false;
 
@@ -167,6 +178,7 @@ export function ServiceDockProvider({ children }) {
             value={{
                 connectionStatus,
                 latestServiceCheck,
+                latestActivityEvent,
                 notifications,
                 removeNotification,
                 notificationHistory,

@@ -37,10 +37,21 @@ async function checkService(service) {
         newStatus === 'unreachable';
 
     if (!wasFailing && isFailing) {
-        await db.query(
+        const [incidentResult] = await db.query(
             `INSERT INTO incidents (service_id)
-             VALUES (?)`,
+            VALUES (?)`,
             [service.id]
+        );
+
+        publishEvent(
+            'incident-started',
+            {
+                incident_id: incidentResult.insertId,
+                service_id: service.id,
+                service_name: service.name,
+                type: 'incident_started',
+                event_at: new Date().toISOString()
+            }
         );
 
         console.log(
@@ -49,13 +60,36 @@ async function checkService(service) {
     }
 
     if (wasFailing && !isFailing) {
-        await db.query(
-            `UPDATE incidents
-             SET resolved_at = CURRENT_TIMESTAMP
-             WHERE service_id = ?
-               AND resolved_at IS NULL`,
+        const [activeIncidents] = await db.query(
+            `SELECT id
+            FROM incidents
+            WHERE service_id = ?
+            AND resolved_at IS NULL
+            ORDER BY started_at DESC
+            LIMIT 1`,
             [service.id]
         );
+
+        await db.query(
+            `UPDATE incidents
+            SET resolved_at = CURRENT_TIMESTAMP
+            WHERE service_id = ?
+            AND resolved_at IS NULL`,
+            [service.id]
+        );
+
+        if (activeIncidents.length > 0) {
+            publishEvent(
+                'incident-resolved',
+                {
+                    incident_id: activeIncidents[0].id,
+                    service_id: service.id,
+                    service_name: service.name,
+                    type: 'incident_resolved',
+                    event_at: new Date().toISOString()
+                }
+            );
+        }
 
         console.log(
             `[Incident] Resolved for ${service.name}`

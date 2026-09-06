@@ -21,7 +21,8 @@ function DashboardPage() {
     const [error, setError] = useState(null);
     const {
         connectionStatus,
-        latestServiceCheck
+        latestServiceCheck,
+        latestActivityEvent
     } = useServiceDock();
 
     async function loadDashboard(showError = false) {
@@ -70,6 +71,38 @@ function DashboardPage() {
 
         loadDashboard(false);
     }, [latestServiceCheck]);
+
+    useEffect(() => {
+        if (!latestActivityEvent) {
+            return;
+        }
+
+        setDashboard(current => {
+            if (!current) {
+                return current;
+            }
+
+            const alreadyExists =
+                current.recentActivity.some(
+                    activity =>
+                        activity.type === latestActivityEvent.type &&
+                        activity.incident_id ===
+                            latestActivityEvent.incident_id
+                );
+
+            if (alreadyExists) {
+                return current;
+            }
+
+            return {
+                ...current,
+                recentActivity: [
+                    latestActivityEvent,
+                    ...current.recentActivity
+                ].slice(0, 8)
+            };
+        });
+    }, [latestActivityEvent]);
 
     if (loading) {
         return (

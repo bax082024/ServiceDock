@@ -170,6 +170,8 @@ export async function checkService(id) {
 
 export function subscribeToDashboardEvents({
     onServiceCheck,
+    onIncidentStarted,
+    onIncidentResolved,
     onOpen,
     onError
 }) {
@@ -189,6 +191,28 @@ export function subscribeToDashboardEvents({
 
             if (onServiceCheck) {
                 onServiceCheck(data);
+            }
+        }
+    );
+
+    eventSource.addEventListener(
+        'incident-started',
+        event => {
+            const data = JSON.parse(event.data);
+
+            if (onIncidentStarted) {
+                onIncidentStarted(data);
+            }
+        }
+    );
+
+    eventSource.addEventListener(
+        'incident-resolved',
+        event => {
+            const data = JSON.parse(event.data);
+
+            if (onIncidentResolved) {
+                onIncidentResolved(data);
             }
         }
     );
