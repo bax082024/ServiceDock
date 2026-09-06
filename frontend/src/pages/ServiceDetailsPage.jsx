@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import ResponseTimeChart from '../components/ResponseTimeChart';
+import EditServiceModal from '../components/EditServiceModal';
 
 import {
     getService,
@@ -23,6 +24,8 @@ function ServiceDetailsPage() {
 
     const [checking, setChecking] = useState(false);
     const [checkError, setCheckError] = useState(null);
+
+    const [showEditModal, setShowEditModal] = useState(false);
 
     async function loadServiceDetails() {
         try {
@@ -195,6 +198,78 @@ function ServiceDetailsPage() {
 
             <section className="details-section">
                 <div className="section-heading">
+                    <h3>Monitoring</h3>
+
+                    <p>
+                        Current monitoring configuration for this service.
+                    </p>
+                </div>
+
+                <div className="monitoring-details-card">
+                    <div className="monitoring-details-row">
+                        <div>
+                            <span>Automatic monitoring</span>
+
+                            <strong>
+                                {service.monitoring_enabled
+                                    ? 'Active'
+                                    : 'Paused'}
+                            </strong>
+                        </div>
+
+                        <div className="monitoring-details-actions">
+                            <span
+                                className={
+                                    service.monitoring_enabled
+                                        ? 'monitoring-state active'
+                                        : 'monitoring-state paused'
+                                }
+                            >
+                                {service.monitoring_enabled
+                                    ? 'ACTIVE'
+                                    : 'PAUSED'}
+                            </span>
+
+                            <button
+                                className="service-action-button"
+                                type="button"
+                                onClick={() => setShowEditModal(true)}
+                            >
+                                Edit settings
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="monitoring-details-grid">
+                        <div>
+                            <span>Check interval</span>
+
+                            <strong>
+                                {service.check_interval_seconds} seconds
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Request timeout</span>
+
+                            <strong>
+                                {service.timeout_ms} ms
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Slow response threshold</span>
+
+                            <strong>
+                                {service.slow_threshold_ms} ms
+                            </strong>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section className="details-section">
+                <div className="section-heading">
                     <h3>Uptime</h3>
 
                     <p>
@@ -331,6 +406,14 @@ function ServiceDetailsPage() {
                     ))}
                 </div>
             </section>
+            {showEditModal && (
+                <EditServiceModal
+                    service={service}
+                    onClose={() => setShowEditModal(false)}
+                    onServiceUpdated={loadServiceDetails}
+                />
+            )}
+
         </>
     );
 }
