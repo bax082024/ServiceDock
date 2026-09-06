@@ -5,7 +5,8 @@ import ServicesPage from './pages/ServicesPage';
 import ServiceDetailsPage from './pages/ServiceDetailsPage';
 import IncidentsPage from './pages/IncidentsPage';
 import ToastContainer from './components/ToastContainer';
-
+import NotificationDrawer
+    from './components/NotificationDrawer';
 import Sidebar from './components/Sidebar';
 
 import './App.css';
@@ -39,6 +40,7 @@ function App() {
                 </Routes>
             </main>
             <ToastContainer />
+            <NotificationDrawer />
         </div>
     );
 }

@@ -6,7 +6,9 @@ import {
 
 function Sidebar() {
     const {
-        connectionStatus
+        connectionStatus,
+        unreadNotificationCount,
+        openNotificationDrawer
     } = useServiceDock();
     return (
         <aside className="sidebar">
@@ -49,24 +51,45 @@ function Sidebar() {
                 </NavLink>
             </nav>
 
-            <div
-                className={
-                    `sidebar-footer ${connectionStatus}`
-                }
-            >
-                <span className="system-dot"></span>
+            <div className="sidebar-bottom">
+                <button
+                    className="notification-button"
+                    type="button"
+                    onClick={openNotificationDrawer}
+                    aria-label="Open notifications"
+                >
+                    <span className="notification-icon">
+                        🔔
+                    </span>
 
-                {connectionStatus === 'connected' &&
-                    'Live connected'}
+                    <span>Notifications</span>
 
-                {connectionStatus === 'connecting' &&
-                    'Connecting...'}
+                    {unreadNotificationCount > 0 && (
+                        <span className="notification-badge">
+                            {unreadNotificationCount}
+                        </span>
+                    )}
+                </button>
 
-                {connectionStatus === 'reconnecting' &&
-                    'Reconnecting...'}
+                <div
+                    className={
+                        `sidebar-footer ${connectionStatus}`
+                    }
+                >
+                    <span className="system-dot"></span>
 
-                {connectionStatus === 'disconnected' &&
-                    'Disconnected'}
+                    {connectionStatus === 'connected' &&
+                        'Live connected'}
+
+                    {connectionStatus === 'connecting' &&
+                        'Connecting...'}
+
+                    {connectionStatus === 'reconnecting' &&
+                        'Reconnecting...'}
+
+                    {connectionStatus === 'disconnected' &&
+                        'Disconnected'}
+                </div>
             </div>
         </aside>
     );
