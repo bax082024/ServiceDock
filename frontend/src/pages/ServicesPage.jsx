@@ -6,7 +6,8 @@ import DeleteServiceModal from '../components/DeleteServiceModal';
 
 import {
     createService,
-    getServices
+    getServices,
+    subscribeToDashboardEvents
 } from '../services/api';
 
 function ServicesPage() {
@@ -43,12 +44,33 @@ function ServicesPage() {
     useEffect(() => {
         loadServices();
 
-        const interval = setInterval(() => {
-            loadServices();
-        }, 5000);
+        const unsubscribe =
+            subscribeToDashboardEvents({
+                onServiceCheck: () => {
+                    loadServices();
+                },
+
+                onOpen: () => {
+                    console.log(
+                        '[Services] Live connection established'
+                    );
+                },
+
+                onError: () => {
+                    console.warn(
+                        '[Services] Live connection interrupted'
+                    );
+                }
+            });
+
+        const fallbackInterval =
+            setInterval(() => {
+                loadServices();
+            }, 30000);
 
         return () => {
-            clearInterval(interval);
+            unsubscribe();
+            clearInterval(fallbackInterval);
         };
     }, []);
 

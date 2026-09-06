@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { getIncidents } from '../services/api';
+import {
+    getIncidents,
+    subscribeToDashboardEvents
+} from '../services/api';
 
 function IncidentsPage() {
     const [incidents, setIncidents] = useState([]);
@@ -25,12 +28,33 @@ function IncidentsPage() {
     useEffect(() => {
         loadIncidents();
 
-        const interval = setInterval(() => {
-            loadIncidents();
-        }, 5000);
+        const unsubscribe =
+            subscribeToDashboardEvents({
+                onServiceCheck: () => {
+                    loadIncidents();
+                },
+
+                onOpen: () => {
+                    console.log(
+                        '[Incidents] Live connection established'
+                    );
+                },
+
+                onError: () => {
+                    console.warn(
+                        '[Incidents] Live connection interrupted'
+                    );
+                }
+            });
+
+        const fallbackInterval =
+            setInterval(() => {
+                loadIncidents();
+            }, 30000);
 
         return () => {
-            clearInterval(interval);
+            unsubscribe();
+            clearInterval(fallbackInterval);
         };
     }, []);
 
