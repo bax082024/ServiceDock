@@ -1444,6 +1444,91 @@ button {
     background: #f05d68;
 }
 
+.toast-container {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+
+    z-index: 2000;
+
+    width: min(380px, calc(100vw - 48px));
+
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    pointer-events: none;
+}
+
+.toast {
+    display: grid;
+    grid-template-columns: 4px 1fr auto;
+    gap: 14px;
+
+    min-height: 76px;
+
+    background: #111a27;
+    border: 1px solid #263449;
+    border-radius: 10px;
+
+    overflow: hidden;
+
+    box-shadow:
+        0 14px 40px rgba(0, 0, 0, 0.35);
+
+    pointer-events: auto;
+}
+
+.toast-indicator {
+    width: 4px;
+    height: 100%;
+}
+
+.toast.error .toast-indicator {
+    background: #f05d68;
+}
+
+.toast.success .toast-indicator {
+    background: #35d07f;
+}
+
+.toast-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+
+    padding: 14px 0;
+}
+
+.toast-content strong {
+    color: #f5f8fc;
+    font-size: 14px;
+}
+
+.toast-content span {
+    color: #8fa2bd;
+    font-size: 12px;
+}
+
+.toast-close {
+    align-self: start;
+
+    padding: 12px 14px;
+
+    background: transparent;
+    border: 0;
+
+    color: #8494aa;
+    font-size: 20px;
+
+    cursor: pointer;
+}
+
+.toast-close:hover {
+    color: #ffffff;
+}
+
 @media (max-width: 1000px) {
     .dashboard-secondary-grid {
         grid-template-columns: 1fr;

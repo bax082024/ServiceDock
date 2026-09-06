@@ -4,6 +4,7 @@ import DashboardPage from './pages/DashboardPage';
 import ServicesPage from './pages/ServicesPage';
 import ServiceDetailsPage from './pages/ServiceDetailsPage';
 import IncidentsPage from './pages/IncidentsPage';
+import ToastContainer from './components/ToastContainer';
 
 import Sidebar from './components/Sidebar';
 
@@ -37,6 +38,7 @@ function App() {
                     />
                 </Routes>
             </main>
+            <ToastContainer />
         </div>
     );
 }
