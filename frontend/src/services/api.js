@@ -168,20 +168,28 @@ export async function checkService(id) {
     return response.json();
 }
 
-export function subscribeToDashboardEvents(
+export function subscribeToDashboardEvents({
     onServiceCheck,
+    onOpen,
     onError
-) {
+}) {
     const eventSource =
         new EventSource(`${API_URL}/events`);
+
+    eventSource.onopen = () => {
+        if (onOpen) {
+            onOpen();
+        }
+    };
 
     eventSource.addEventListener(
         'service-check',
         event => {
-            const data =
-                JSON.parse(event.data);
+            const data = JSON.parse(event.data);
 
-            onServiceCheck(data);
+            if (onServiceCheck) {
+                onServiceCheck(data);
+            }
         }
     );
 

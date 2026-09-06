@@ -1383,6 +1383,51 @@ button {
     white-space: nowrap;
 }
 
+.monitor-status.connected .system-dot {
+    background: #35d07f;
+}
+
+.monitor-status.connecting .system-dot {
+    background: #578cf5;
+}
+
+.monitor-status.reconnecting .system-dot {
+    background: #f0a13e;
+}
+
+.monitor-status.disconnected .system-dot {
+    background: #f05d68;
+}
+
+.monitor-status.connected {
+    color: #a9b4c5;
+}
+
+.monitor-status.connecting {
+    color: #7da7ff;
+}
+
+.monitor-status.reconnecting {
+    color: #f0a13e;
+}
+
+.monitor-status.disconnected {
+    color: #ff7882;
+}
+
+.dashboard-warning {
+    margin-bottom: 24px;
+    padding: 10px 14px;
+
+    border: 1px solid rgba(240, 161, 62, 0.35);
+    border-radius: 8px;
+
+    background: rgba(240, 161, 62, 0.08);
+
+    color: #f0a13e;
+    font-size: 13px;
+}
+
 @media (max-width: 1000px) {
     .dashboard-secondary-grid {
         grid-template-columns: 1fr;

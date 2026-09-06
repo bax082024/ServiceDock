@@ -7,49 +7,104 @@ import {
 
 import ServiceCard from '../components/ServiceCard';
 
-function DashboardPage() {
-    const [dashboard, setDashboard] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+let cachedDashboard = null;
 
-    async function loadDashboard() {
+function DashboardPage() {
+    const [dashboard, setDashboard] =
+    useState(cachedDashboard);
+
+    const [loading, setLoading] =
+        useState(cachedDashboard === null);
+    const [error, setError] = useState(null);
+    const [connectionStatus, setConnectionStatus] =
+    useState('connecting');
+
+    async function loadDashboard(showError = false) {
         try {
             const data = await getDashboardSummary();
+
+            cachedDashboard = data;
 
             setDashboard(data);
             setError(null);
 
         } catch (error) {
-            setError(error.message);
+            if (!dashboard && !cachedDashboard) {
+                setError(error.message);
+            } else {
+                console.warn(
+                    'Dashboard refresh failed:',
+                    error.message
+                );
+            }
 
         } finally {
-            setLoading(false);
+            if (showError) {
+                setLoading(false);
+            }
         }
     }
 
     useEffect(() => {
-        loadDashboard();
+        let disconnectTimer = null;
+        let connectionIsDisconnected = false;
+
+        loadDashboard(true);
 
         const unsubscribe =
-            subscribeToDashboardEvents(
-                () => {
-                    loadDashboard();
+            subscribeToDashboardEvents({
+                onServiceCheck: () => {
+                    loadDashboard(false);
                 },
-                () => {
-                    console.warn(
-                        'Dashboard live connection interrupted'
-                    );
+
+                onOpen: () => {
+                    connectionIsDisconnected = false;
+
+                    if (disconnectTimer) {
+                        clearTimeout(disconnectTimer);
+                        disconnectTimer = null;
+                    }
+
+                    setConnectionStatus('connected');
+
+                    // Immediately refresh after reconnecting
+                    // so the dashboard catches up.
+                    loadDashboard(false);
+                },
+
+                onError: () => {
+                    if (connectionIsDisconnected) {
+                        return;
+                    }
+
+                    setConnectionStatus('reconnecting');
+
+                    if (!disconnectTimer) {
+                        disconnectTimer = setTimeout(() => {
+                            connectionIsDisconnected = true;
+                            disconnectTimer = null;
+
+                            setConnectionStatus(
+                                'disconnected'
+                            );
+                        }, 10000);
+                    }
                 }
-            );
+            });
 
         const fallbackInterval =
             setInterval(() => {
-                loadDashboard();
+                loadDashboard(false);
             }, 30000);
 
         return () => {
             unsubscribe();
+
             clearInterval(fallbackInterval);
+
+            if (disconnectTimer) {
+                clearTimeout(disconnectTimer);
+            }
         };
     }, []);
 
@@ -61,7 +116,7 @@ function DashboardPage() {
         );
     }
 
-    if (error) {
+    if (error && !dashboard) {
         return (
             <p className="message error">
                 Error: {error}
@@ -91,11 +146,33 @@ function DashboardPage() {
                     </p>
                 </div>
 
-                <div className="monitor-status">
+                <div
+                    className={
+                        `monitor-status ${connectionStatus}`
+                    }
+                >
                     <span className="system-dot"></span>
-                    Live monitoring
+
+                    {connectionStatus === 'connected' &&
+                        'Live connected'}
+
+                    {connectionStatus === 'connecting' &&
+                        'Connecting...'}
+
+                    {connectionStatus === 'reconnecting' &&
+                        'Reconnecting...'}
+
+                    {connectionStatus === 'disconnected' &&
+                        'Disconnected'}
                 </div>
             </header>
+
+            {connectionStatus !== 'connected' && dashboard && (
+                <div className="dashboard-warning">
+                    Showing last known data while the live connection
+                    is unavailable.
+                </div>
+            )}
 
             <section className="overview-grid">
                 <div className="overview-card">
