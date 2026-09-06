@@ -7,6 +7,8 @@ const cors = require('cors');
 const incidentsRouter = require('./routes/incidents');
 const dashboardRouter =
     require('./routes/dashboard');
+const eventsRouter =
+    require('./routes/events');
 
 const app = express();
 
@@ -21,6 +23,7 @@ app.use(express.json());
 app.use('/services', servicesRouter);
 app.use('/incidents', incidentsRouter);
 app.use('/dashboard', dashboardRouter);
+app.use('/events', eventsRouter);
 
 app.get('/health', (req, res) => {
     res.status(200).json({

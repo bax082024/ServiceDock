@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 
 import {
-    getDashboardSummary
+    getDashboardSummary,
+    subscribeToDashboardEvents
 } from '../services/api';
 
 import ServiceCard from '../components/ServiceCard';
@@ -29,12 +30,26 @@ function DashboardPage() {
     useEffect(() => {
         loadDashboard();
 
-        const interval = setInterval(() => {
-            loadDashboard();
-        }, 5000);
+        const unsubscribe =
+            subscribeToDashboardEvents(
+                () => {
+                    loadDashboard();
+                },
+                () => {
+                    console.warn(
+                        'Dashboard live connection interrupted'
+                    );
+                }
+            );
+
+        const fallbackInterval =
+            setInterval(() => {
+                loadDashboard();
+            }, 30000);
 
         return () => {
-            clearInterval(interval);
+            unsubscribe();
+            clearInterval(fallbackInterval);
         };
     }, []);
 

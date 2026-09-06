@@ -1,4 +1,7 @@
 const db = require('./db');
+const {
+    publishEvent
+} = require('./realtime');
 
 async function checkService(service) {
     let newStatus;
@@ -75,6 +78,19 @@ async function checkService(service) {
             newStatus,
             responseTimeMs
         ]
+    );
+
+    publishEvent(
+        'service-check',
+        {
+            serviceId: service.id,
+            name: service.name,
+            url: service.url,
+            previousStatus: service.status,
+            status: newStatus,
+            responseTimeMs,
+            checkedAt: new Date().toISOString()
+        }
     );
 
     return {

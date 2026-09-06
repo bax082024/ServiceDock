@@ -167,3 +167,31 @@ export async function checkService(id) {
 
     return response.json();
 }
+
+export function subscribeToDashboardEvents(
+    onServiceCheck,
+    onError
+) {
+    const eventSource =
+        new EventSource(`${API_URL}/events`);
+
+    eventSource.addEventListener(
+        'service-check',
+        event => {
+            const data =
+                JSON.parse(event.data);
+
+            onServiceCheck(data);
+        }
+    );
+
+    eventSource.onerror = error => {
+        if (onError) {
+            onError(error);
+        }
+    };
+
+    return () => {
+        eventSource.close();
+    };
+}
