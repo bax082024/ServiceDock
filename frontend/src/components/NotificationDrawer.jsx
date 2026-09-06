@@ -1,13 +1,45 @@
 import {
+    useNavigate
+} from 'react-router-dom';
+
+import {
     useServiceDock
 } from '../context/ServiceDockContext';
 
 function NotificationDrawer() {
+    const navigate = useNavigate();
+
     const {
         notificationHistory,
         notificationDrawerOpen,
         closeNotificationDrawer
     } = useServiceDock();
+
+    function openNotification(notification) {
+        if (!notification.incidentId) {
+            return;
+        }
+
+        closeNotificationDrawer();
+
+        navigate(
+            `/incidents?incident=${notification.incidentId}`
+        );
+    }
+
+    function handleNotificationKeyDown(
+        event,
+        notification
+    ) {
+        if (
+            event.key === 'Enter' ||
+            event.key === ' '
+        ) {
+            event.preventDefault();
+
+            openNotification(notification);
+        }
+    }
 
     if (!notificationDrawerOpen) {
         return null;
@@ -55,6 +87,27 @@ function NotificationDrawer() {
                                 `notification-history-item ${notification.type}`
                             }
                             key={notification.id}
+                            role={
+                                notification.incidentId
+                                    ? 'button'
+                                    : undefined
+                            }
+                            tabIndex={
+                                notification.incidentId
+                                    ? 0
+                                    : undefined
+                            }
+                            onClick={() =>
+                                openNotification(
+                                    notification
+                                )
+                            }
+                            onKeyDown={event =>
+                                handleNotificationKeyDown(
+                                    event,
+                                    notification
+                                )
+                            }
                         >
                             <span className="notification-history-dot">
                             </span>

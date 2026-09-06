@@ -1,5 +1,13 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import {
+    useEffect,
+    useRef,
+    useState
+} from 'react';
+
+import {
+    Link,
+    useSearchParams
+} from 'react-router-dom';
 
 import {
     getIncidents
@@ -14,9 +22,22 @@ function IncidentsPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    const [searchParams] = useSearchParams();
+
+    const lastScrolledIncidentId =
+        useRef(null);
+
     const {
         latestServiceCheck
     } = useServiceDock();
+
+    const incidentParam =
+        searchParams.get('incident');
+
+    const selectedIncidentId =
+        incidentParam
+            ? Number(incidentParam)
+            : null;
 
     async function loadIncidents() {
         try {
@@ -52,6 +73,50 @@ function IncidentsPage() {
 
         loadIncidents();
     }, [latestServiceCheck]);
+
+    useEffect(() => {
+        if (!selectedIncidentId) {
+            return;
+        }
+
+        if (
+            lastScrolledIncidentId.current ===
+            selectedIncidentId
+        ) {
+            return;
+        }
+
+        const incidentExists =
+            incidents.some(
+                incident =>
+                    incident.id === selectedIncidentId
+            );
+
+        if (!incidentExists) {
+            return;
+        }
+
+        const element =
+            document.getElementById(
+                `incident-${selectedIncidentId}`
+            );
+
+        if (!element) {
+            return;
+        }
+
+        element.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+        });
+
+        lastScrolledIncidentId.current =
+            selectedIncidentId;
+
+    }, [
+        incidents,
+        selectedIncidentId
+    ]);
 
     const activeIncidents = incidents.filter(
         incident => incident.status === 'active'
@@ -94,17 +159,23 @@ function IncidentsPage() {
                     <section className="details-overview">
                         <div className="overview-card">
                             <span>Total incidents</span>
-                            <strong>{incidents.length}</strong>
+                            <strong>
+                                {incidents.length}
+                            </strong>
                         </div>
 
                         <div className="overview-card">
                             <span>Active incidents</span>
-                            <strong>{activeIncidents}</strong>
+                            <strong>
+                                {activeIncidents}
+                            </strong>
                         </div>
 
                         <div className="overview-card">
                             <span>Resolved incidents</span>
-                            <strong>{resolvedIncidents}</strong>
+                            <strong>
+                                {resolvedIncidents}
+                            </strong>
                         </div>
                     </section>
 
@@ -126,7 +197,17 @@ function IncidentsPage() {
 
                             {incidents.map(incident => (
                                 <div
-                                    className="global-incident-row"
+                                    id={
+                                        `incident-${incident.id}`
+                                    }
+                                    className={
+                                        `global-incident-row ${
+                                            incident.id ===
+                                            selectedIncidentId
+                                                ? 'highlighted'
+                                                : ''
+                                        }`
+                                    }
                                     key={incident.id}
                                 >
                                     <div className="incident-service">
@@ -155,7 +236,9 @@ function IncidentsPage() {
                                     </div>
 
                                     <div className="incident-time">
-                                        <span>Started</span>
+                                        <span>
+                                            Started
+                                        </span>
 
                                         <strong>
                                             {new Date(
@@ -165,7 +248,9 @@ function IncidentsPage() {
                                     </div>
 
                                     <div className="incident-duration">
-                                        <span>Duration</span>
+                                        <span>
+                                            Duration
+                                        </span>
 
                                         <strong>
                                             {incident.durationSeconds} sec

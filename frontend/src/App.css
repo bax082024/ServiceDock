@@ -647,6 +647,41 @@ button {
     border-bottom: 0;
 }
 
+.global-incident-row {
+    transition:
+        background 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.global-incident-row.highlighted {
+    position: relative;
+
+    background: rgba(57, 120, 255, 0.12);
+
+    box-shadow:
+        inset 4px 0 0 #3978ff;
+}
+
+.global-incident-row.highlighted::after {
+    content: 'Selected incident';
+
+    position: absolute;
+    top: 8px;
+    right: 10px;
+
+    padding: 3px 7px;
+
+    border-radius: 999px;
+
+    background: rgba(57, 120, 255, 0.14);
+    color: #7da7ff;
+
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
 .incident-service {
     display: flex;
     align-items: center;
@@ -1728,6 +1763,57 @@ button {
 .notification-history-content time {
     color: #8fa2bd;
     font-size: 12px;
+}
+
+.notification-history-item {
+    cursor: pointer;
+
+    transition:
+        transform 0.15s ease,
+        border-color 0.15s ease,
+        background 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.notification-history-item:hover {
+    transform: translateY(-1px);
+
+    border-color: #3a5275;
+    background: #152033;
+
+    box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.notification-history-item:focus-visible {
+    outline: 2px solid #3978ff;
+    outline-offset: 2px;
+}
+
+.notification-history-content::after {
+    content: 'View incident →';
+
+    margin-top: 6px;
+
+    color: #6f9cff;
+    font-size: 11px;
+    font-weight: 600;
+
+    opacity: 0;
+
+    transform: translateY(-2px);
+
+    transition:
+        opacity 0.15s ease,
+        transform 0.15s ease;
+}
+
+.notification-history-item:hover
+.notification-history-content::after,
+.notification-history-item:focus-visible
+.notification-history-content::after {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 @media (max-width: 1000px) {
