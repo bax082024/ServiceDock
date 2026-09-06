@@ -168,6 +168,37 @@ export async function checkService(id) {
     return response.json();
 }
 
+export async function getNotifications() {
+    const response = await fetch(
+        `${API_URL}/notifications`
+    );
+
+    if (!response.ok) {
+        throw new Error(
+            'Failed to load notifications'
+        );
+    }
+
+    return response.json();
+}
+
+export async function markAllNotificationsRead() {
+    const response = await fetch(
+        `${API_URL}/notifications/read-all`,
+        {
+            method: 'PUT'
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error(
+            'Failed to mark notifications as read'
+        );
+    }
+
+    return response.json();
+}
+
 export function subscribeToDashboardEvents({
     onServiceCheck,
     onIncidentStarted,

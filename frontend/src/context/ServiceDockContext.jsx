@@ -6,6 +6,8 @@ import {
 } from 'react';
 
 import {
+    getNotifications,
+    markAllNotificationsRead,
     subscribeToDashboardEvents
 } from '../services/api';
 
@@ -67,7 +69,7 @@ export function ServiceDockProvider({ children }) {
         );
     }
 
-    function openNotificationDrawer() {
+    async function openNotificationDrawer() {
         setNotificationDrawerOpen(true);
 
         setNotificationHistory(current =>
@@ -76,6 +78,15 @@ export function ServiceDockProvider({ children }) {
                 read: true
             }))
         );
+
+        try {
+            await markAllNotificationsRead();
+        } catch (error) {
+            console.error(
+                'Failed to persist notification read state:',
+                error.message
+            );
+        }
     }
 
     function closeNotificationDrawer() {
@@ -86,6 +97,34 @@ export function ServiceDockProvider({ children }) {
         notificationHistory.filter(
             item => !item.read
         ).length;
+
+    useEffect(() => {
+        let cancelled = false;
+
+        async function loadNotifications() {
+            try {
+                const data =
+                    await getNotifications();
+
+                if (!cancelled) {
+                    setNotificationHistory(
+                        data.notifications
+                    );
+                }
+            } catch (error) {
+                console.error(
+                    'Failed to load notification history:',
+                    error.message
+                );
+            }
+        }
+
+        loadNotifications();
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     useEffect(() => {
         let disconnectTimer = null;
@@ -149,17 +188,23 @@ export function ServiceDockProvider({ children }) {
                         return;
                     }
 
-                    setConnectionStatus('reconnecting');
+                    setConnectionStatus(
+                        'reconnecting'
+                    );
 
                     if (!disconnectTimer) {
-                        disconnectTimer = setTimeout(() => {
-                            connectionIsDisconnected = true;
-                            disconnectTimer = null;
+                        disconnectTimer =
+                            setTimeout(() => {
+                                connectionIsDisconnected =
+                                    true;
 
-                            setConnectionStatus(
-                                'disconnected'
-                            );
-                        }, 10000);
+                                disconnectTimer =
+                                    null;
+
+                                setConnectionStatus(
+                                    'disconnected'
+                                );
+                            }, 10000);
                     }
                 }
             });
@@ -168,7 +213,9 @@ export function ServiceDockProvider({ children }) {
             unsubscribe();
 
             if (disconnectTimer) {
-                clearTimeout(disconnectTimer);
+                clearTimeout(
+                    disconnectTimer
+                );
             }
         };
     }, []);

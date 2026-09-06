@@ -9,6 +9,8 @@ const dashboardRouter =
     require('./routes/dashboard');
 const eventsRouter =
     require('./routes/events');
+const notificationsRouter =
+    require('./routes/notifications');
 
 const app = express();
 
@@ -24,6 +26,7 @@ app.use('/services', servicesRouter);
 app.use('/incidents', incidentsRouter);
 app.use('/dashboard', dashboardRouter);
 app.use('/events', eventsRouter);
+app.use('/notifications', notificationsRouter);
 
 app.get('/health', (req, res) => {
     res.status(200).json({

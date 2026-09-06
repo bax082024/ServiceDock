@@ -1348,6 +1348,50 @@ button {
     border-bottom: 0;
 }
 
+.activity-row-new {
+    position: relative;
+
+    animation:
+        activity-arrive 0.45s ease-out,
+        activity-highlight 3s ease-out;
+}
+
+.activity-row-new.incident_started {
+    box-shadow:
+        inset 5px 0 0 #f05d68;
+}
+
+.activity-row-new.incident_resolved {
+    box-shadow:
+        inset 5px 0 0 #35d07f;
+}
+
+@keyframes activity-arrive {
+    from {
+        transform: translateX(-20px);
+        opacity: 0.2;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes activity-highlight {
+    0% {
+        background: rgba(57, 120, 255, 0.35);
+    }
+
+    60% {
+        background: rgba(57, 120, 255, 0.16);
+    }
+
+    100% {
+        background: transparent;
+    }
+}
+
 .activity-dot {
     width: 8px;
     height: 8px;

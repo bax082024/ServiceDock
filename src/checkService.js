@@ -1,4 +1,5 @@
 const db = require('./db');
+
 const {
     publishEvent
 } = require('./realtime');
@@ -39,8 +40,35 @@ async function checkService(service) {
     if (!wasFailing && isFailing) {
         const [incidentResult] = await db.query(
             `INSERT INTO incidents (service_id)
-            VALUES (?)`,
+             VALUES (?)`,
             [service.id]
+        );
+
+        const notificationTitle =
+            `${service.name} is down`;
+
+        const notificationMessage =
+            newStatus === 'unreachable'
+                ? 'Service is unreachable.'
+                : 'Service returned an unhealthy response.';
+
+        await db.query(
+            `INSERT INTO notifications
+                (
+                    service_id,
+                    incident_id,
+                    type,
+                    title,
+                    message
+                )
+             VALUES (?, ?, ?, ?, ?)`,
+            [
+                service.id,
+                incidentResult.insertId,
+                'error',
+                notificationTitle,
+                notificationMessage
+            ]
         );
 
         publishEvent(
@@ -62,27 +90,55 @@ async function checkService(service) {
     if (wasFailing && !isFailing) {
         const [activeIncidents] = await db.query(
             `SELECT id
-            FROM incidents
-            WHERE service_id = ?
-            AND resolved_at IS NULL
-            ORDER BY started_at DESC
-            LIMIT 1`,
+             FROM incidents
+             WHERE service_id = ?
+               AND resolved_at IS NULL
+             ORDER BY started_at DESC
+             LIMIT 1`,
             [service.id]
         );
 
         await db.query(
             `UPDATE incidents
-            SET resolved_at = CURRENT_TIMESTAMP
-            WHERE service_id = ?
-            AND resolved_at IS NULL`,
+             SET resolved_at = CURRENT_TIMESTAMP
+             WHERE service_id = ?
+               AND resolved_at IS NULL`,
             [service.id]
         );
 
         if (activeIncidents.length > 0) {
+            const incidentId =
+                activeIncidents[0].id;
+
+            const notificationTitle =
+                `${service.name} recovered`;
+
+            const notificationMessage =
+                `Response time: ${responseTimeMs} ms`;
+
+            await db.query(
+                `INSERT INTO notifications
+                    (
+                        service_id,
+                        incident_id,
+                        type,
+                        title,
+                        message
+                    )
+                 VALUES (?, ?, ?, ?, ?)`,
+                [
+                    service.id,
+                    incidentId,
+                    'success',
+                    notificationTitle,
+                    notificationMessage
+                ]
+            );
+
             publishEvent(
                 'incident-resolved',
                 {
-                    incident_id: activeIncidents[0].id,
+                    incident_id: incidentId,
                     service_id: service.id,
                     service_name: service.name,
                     type: 'incident_resolved',
@@ -105,7 +161,11 @@ async function checkService(service) {
 
     await db.query(
         `INSERT INTO service_checks
-            (service_id, status, response_time_ms)
+            (
+                service_id,
+                status,
+                response_time_ms
+            )
          VALUES (?, ?, ?)`,
         [
             service.id,

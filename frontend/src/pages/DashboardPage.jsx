@@ -14,11 +14,16 @@ let cachedDashboard = null;
 
 function DashboardPage() {
     const [dashboard, setDashboard] =
-    useState(cachedDashboard);
+        useState(cachedDashboard);
 
     const [loading, setLoading] =
         useState(cachedDashboard === null);
-    const [error, setError] = useState(null);
+
+    const [error, setError] =
+        useState(null);
+
+    
+
     const {
         connectionStatus,
         latestServiceCheck,
@@ -31,7 +36,40 @@ function DashboardPage() {
 
             cachedDashboard = data;
 
-            setDashboard(data);
+            setDashboard(current => {
+                if (!current) {
+                    return data;
+                }
+
+                const highlightedActivities =
+                    new Set(
+                        current.recentActivity
+                            .filter(activity => activity.isNew)
+                            .map(
+                                activity =>
+                                    `${activity.type}-${activity.incident_id}`
+                            )
+                    );
+
+                return {
+                    ...data,
+
+                    recentActivity:
+                        data.recentActivity.map(activity => {
+                            const activityKey =
+                                `${activity.type}-${activity.incident_id}`;
+
+                            return {
+                                ...activity,
+                                isNew:
+                                    highlightedActivities.has(
+                                        activityKey
+                                    )
+                            };
+                        })
+                };
+            });
+
             setError(null);
 
         } catch (error) {
@@ -77,6 +115,9 @@ function DashboardPage() {
             return;
         }
 
+        const activityKey =
+            `${latestActivityEvent.type}-${latestActivityEvent.incident_id}`;
+
         setDashboard(current => {
             if (!current) {
                 return current;
@@ -94,14 +135,57 @@ function DashboardPage() {
                 return current;
             }
 
+            const newActivity = {
+                ...latestActivityEvent,
+                isNew: true
+            };
+
             return {
                 ...current,
                 recentActivity: [
-                    latestActivityEvent,
+                    newActivity,
                     ...current.recentActivity
                 ].slice(0, 8)
             };
         });
+
+        const highlightTimer =
+            setTimeout(() => {
+                setDashboard(current => {
+                    if (!current) {
+                        return current;
+                    }
+
+                    return {
+                        ...current,
+
+                        recentActivity:
+                            current.recentActivity.map(
+                                activity => {
+                                    const currentKey =
+                                        `${activity.type}-${activity.incident_id}`;
+
+                                    if (
+                                        currentKey !==
+                                        activityKey
+                                    ) {
+                                        return activity;
+                                    }
+
+                                    return {
+                                        ...activity,
+                                        isNew: false
+                                    };
+                                }
+                            )
+                    };
+                });
+            }, 3000);
+
+        return () => {
+            clearTimeout(highlightTimer);
+        };
+
     }, [latestActivityEvent]);
 
     if (loading) {
@@ -277,39 +361,48 @@ function DashboardPage() {
                     </div>
 
                     <div className="activity-list">
-                        {recentActivity.map(activity => (
-                            <div
-                                className="activity-row"
-                                key={
-                                    `${activity.type}-${activity.incident_id}`
-                                }
-                            >
-                                <span
+                        {recentActivity.map(activity => {
+                            const activityKey =
+                                `${activity.type}-${activity.incident_id}`;
+
+                            return (
+                                <div
                                     className={
-                                        `activity-dot ${activity.type}`
+                                        `activity-row ${
+                                            activity.isNew
+                                                ? `activity-row-new ${activity.type}`
+                                                : ''
+                                        }`
                                     }
-                                ></span>
+                                    key={activityKey}
+                                >
+                                    <span
+                                        className={
+                                            `activity-dot ${activity.type}`
+                                        }
+                                    ></span>
 
-                                <div className="activity-content">
-                                    <strong>
-                                        {activity.service_name}
-                                    </strong>
+                                    <div className="activity-content">
+                                        <strong>
+                                            {activity.service_name}
+                                        </strong>
 
-                                    <span>
-                                        {activity.type ===
-                                        'incident_started'
-                                            ? 'Incident started'
-                                            : 'Service recovered'}
-                                    </span>
+                                        <span>
+                                            {activity.type ===
+                                            'incident_started'
+                                                ? 'Incident started'
+                                                : 'Service recovered'}
+                                        </span>
+                                    </div>
+
+                                    <time>
+                                        {new Date(
+                                            activity.event_at
+                                        ).toLocaleString()}
+                                    </time>
                                 </div>
-
-                                <time>
-                                    {new Date(
-                                        activity.event_at
-                                    ).toLocaleString()}
-                                </time>
-                            </div>
-                        ))}
+                            );
+                        })}
 
                         {recentActivity.length === 0 && (
                             <div className="empty-state">

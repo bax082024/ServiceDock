@@ -10,6 +10,7 @@ async function initDb() {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     `);
+
     await db.query(`
         CREATE TABLE IF NOT EXISTS service_checks (
             id INT PRIMARY KEY AUTO_INCREMENT,
@@ -32,6 +33,27 @@ async function initDb() {
         )
     `);
 
+    await db.query(`
+        CREATE TABLE IF NOT EXISTS notifications (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            service_id INT NULL,
+            incident_id INT NULL,
+            type VARCHAR(20) NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            message VARCHAR(500) NOT NULL,
+            is_read BOOLEAN NOT NULL DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+            FOREIGN KEY (service_id)
+                REFERENCES services(id)
+                ON DELETE CASCADE,
+
+            FOREIGN KEY (incident_id)
+                REFERENCES incidents(id)
+                ON DELETE SET NULL
+        )
+    `);
+
     const [columns] = await db.query(`
         SHOW COLUMNS FROM service_checks LIKE 'response_time_ms'
     `);
@@ -45,8 +67,6 @@ async function initDb() {
 
         console.log('Added response_time_ms column');
     }
-
-    
 
     const [monitoringEnabledColumn] = await db.query(`
         SHOW COLUMNS FROM services LIKE 'monitoring_enabled'
@@ -103,9 +123,8 @@ async function initDb() {
 
         console.log('Added slow_threshold_ms column');
     }
+
     console.log('Database initialized');
 }
-
-
 
 module.exports = initDb;
